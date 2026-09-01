@@ -1,0 +1,97 @@
+import type { PecsCardTemplate } from './pecs-card'
+
+function card(
+  sortOrder: number,
+  slug: string,
+  kind: PecsCardTemplate['kind'],
+  label: string,
+  speak: string,
+  image: string,
+  tone: PecsCardTemplate['tone'],
+): PecsCardTemplate {
+  return {
+    slug,
+    kind,
+    label,
+    speak,
+    imageSrc: `/pecs/${image}.jpg`,
+    tone,
+    sortOrder,
+  }
+}
+
+export function defaultDesfraldePack(): Array<PecsCardTemplate> {
+  return [
+    card(1, 'xixi', 'pedido', 'Xixi', 'Xixi', 'xixi-pedido', 'terra'),
+    card(2, 'coco', 'pedido', 'Cocô', 'Cocô', 'coco-pedido', 'terra'),
+    card(3, 'banheiro', 'pedido', 'Banheiro', 'Banheiro', 'banheiro', 'terra'),
+    card(4, 'ajuda', 'pedido', 'Ajuda', 'Ajuda, por favor', 'ajuda', 'terra'),
+    card(
+      5,
+      'ir-banheiro',
+      'rotina',
+      'Ir ao banheiro',
+      'Ir ao banheiro',
+      'ir-banheiro',
+      'sage',
+    ),
+    card(
+      6,
+      'abaixar-calca',
+      'rotina',
+      'Abaixar a calça',
+      'Abaixar a calça',
+      'calca',
+      'sage',
+    ),
+    card(
+      7,
+      'sentar',
+      'rotina',
+      'Sentar no vaso',
+      'Sentar no vaso',
+      'sentar',
+      'sage',
+    ),
+    card(8, 'fazer-xixi', 'rotina', 'Fazer xixi', 'Fazer xixi', 'fazer-xixi', 'sage'),
+    card(9, 'fazer-coco', 'rotina', 'Fazer cocô', 'Fazer cocô', 'fazer-coco', 'sage'),
+    card(10, 'papel', 'rotina', 'Usar o papel', 'Usar o papel', 'papel', 'sage'),
+    card(
+      11,
+      'descarga',
+      'rotina',
+      'Dar descarga',
+      'Dar descarga',
+      'descarga',
+      'sage',
+    ),
+    card(
+      12,
+      'subir-calca',
+      'rotina',
+      'Subir a calça',
+      'Subir a calça',
+      'subir-calca',
+      'sage',
+    ),
+    card(
+      13,
+      'lavar-maos',
+      'rotina',
+      'Lavar as mãos',
+      'Lavar as mãos',
+      'lavar-maos',
+      'sage',
+    ),
+    card(
+      14,
+      'secar-maos',
+      'rotina',
+      'Secar as mãos',
+      'Secar as mãos',
+      'secar-maos',
+      'sage',
+    ),
+    card(15, 'pronto', 'rotina', 'Pronto!', 'Pronto! Muito bem!', 'pronto', 'honey'),
+  ]
+}
