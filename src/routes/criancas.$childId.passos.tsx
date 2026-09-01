@@ -44,7 +44,7 @@ function PassosPage() {
           />
         ))}
       </div>
-      <div className="w-full max-w-sm">
+      <div key={current.id} className="pecs-step w-full max-w-sm">
         <PecsCard {...current} number={index + 1} />
       </div>
       <div className="flex gap-3">

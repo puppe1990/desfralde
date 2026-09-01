@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { validateOnboardingDraft } from './onboarding-draft'
+import {
+  addAdultRow,
+  removeAdultRow,
+  validateOnboardingDraft,
+} from './onboarding-draft'
 
 describe('validateOnboardingDraft', () => {
   it('requires at least one parent and one child', () => {
@@ -62,5 +66,23 @@ describe('validateOnboardingDraft', () => {
         staff: [],
       }),
     ).toThrow('Papel do responsável inválido')
+  })
+})
+
+describe('adult rows in the wizard', () => {
+  const maria = { name: 'Maria', role: 'mae' as const }
+  const blankPai = { name: '', role: 'pai' as const }
+
+  it('adds one blank row and refuses a second empty duplicate', () => {
+    const withBlank = addAdultRow([maria], blankPai)
+    expect(withBlank).toEqual([maria, blankPai])
+    expect(addAdultRow(withBlank, blankPai)).toEqual(withBlank)
+  })
+
+  it('removes an extra row but keeps at least the minimum', () => {
+    const two = [maria, blankPai]
+    expect(removeAdultRow(two, 1, 1)).toEqual([maria])
+    expect(removeAdultRow([maria], 0, 1)).toEqual([maria])
+    expect(removeAdultRow([blankPai], 0, 0)).toEqual([])
   })
 })

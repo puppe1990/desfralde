@@ -89,6 +89,74 @@ describe('family onboarding', () => {
     ).rejects.toThrow('Criança não encontrada')
   })
 
+  it('lets another adult in the house log in to the same child board', async () => {
+    const { client, store } = openMemoryDesfraldeStore()
+    opened.push(client)
+
+    const maria = await store.registerCaregiver({
+      name: 'Maria',
+      email: 'maria@casa.com',
+      password: 'solzinho123',
+    })
+    await store.completeOnboarding(maria.id, {
+      parents: [{ name: 'Maria', role: 'mae' }],
+      children: [{ name: 'Ana' }],
+      staff: [{ name: 'Xereta', role: 'terapeuta' }],
+    })
+
+    const larissa = await store.addHouseholdLogin(maria.id, {
+      name: 'Larissa',
+      email: 'larissa@casa.com',
+      password: 'solzinho123',
+    })
+    const family = await store.getFamily(larissa.id)
+    expect(family.children.map((child) => child.name)).toEqual(['Ana'])
+    const board = await store.getFamilyChildBoard(
+      larissa.id,
+      family.children[0].id,
+    )
+    expect(board.child.name).toBe('Ana')
+  })
+
+  it('renames a child and deletes an extra child from the house', async () => {
+    const { client, store } = openMemoryDesfraldeStore()
+    opened.push(client)
+
+    const maria = await store.registerCaregiver({
+      name: 'Maria',
+      email: 'maria@casa.com',
+      password: 'solzinho123',
+    })
+    const family = await store.completeOnboarding(maria.id, {
+      parents: [{ name: 'Maria', role: 'mae' }],
+      children: [{ name: 'Ana' }, { name: 'Pedro' }],
+      staff: [],
+    })
+    const ana = family.children[0]
+    const pedro = family.children[1]
+
+    const renamed = await store.updateChild(maria.id, ana.id, {
+      name: '  Ana Clara ',
+      avatar: {
+        gender: 'menina',
+        skinTone: 'peach',
+        hairType: 'long',
+        hairColor: 'blonde',
+      },
+    })
+    expect(renamed.name).toBe('Ana Clara')
+    expect(renamed.avatar.hairType).toBe('long')
+
+    await store.deleteChild(maria.id, pedro.id)
+    expect(
+      (await store.getFamily(maria.id)).children.map((child) => child.name),
+    ).toEqual(['Ana Clara'])
+
+    await expect(store.deleteChild(maria.id, ana.id)).rejects.toThrow(
+      'A família precisa de pelo menos uma criança no quadro',
+    )
+  })
+
   it('rejects a duplicate email', async () => {
     const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)

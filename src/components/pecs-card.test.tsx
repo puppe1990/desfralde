@@ -1,8 +1,10 @@
 /** @vitest-environment jsdom */
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { PecsCard } from './pecs-card'
+
+afterEach(cleanup)
 
 describe('PecsCard', () => {
   it('shows the label and image for a request card', () => {
@@ -20,5 +22,39 @@ describe('PecsCard', () => {
       'src',
       expect.stringContaining('/pecs/xixi-pedido.jpg'),
     )
+  })
+
+  it('marks the card as speaking after a tap', () => {
+    render(
+      <PecsCard
+        label="Xixi"
+        speak="Xixi"
+        imageSrc="/pecs/xixi-pedido.jpg"
+        tone="terra"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /xixi/i }))
+
+    expect(screen.getByRole('button', { name: /xixi/i }).className).toContain(
+      'is-speaking',
+    )
+  })
+
+  it('keeps the speaking press if the same card is tapped again', () => {
+    render(
+      <PecsCard
+        label="Xixi"
+        speak="Xixi"
+        imageSrc="/pecs/xixi-pedido.jpg"
+        tone="terra"
+      />,
+    )
+
+    const card = screen.getByRole('button', { name: /xixi/i })
+    fireEvent.click(card)
+    fireEvent.click(card)
+
+    expect(card.className).toContain('is-speaking')
   })
 })

@@ -1,3 +1,7 @@
+import { useState } from 'react'
+
+import { CustomPottyTimeForm } from './custom-potty-time-form'
+import type { CustomPottyWhen } from './custom-potty-time-form'
 import {
   POTTY_KIND_LABELS,
   eventsOnDay,
@@ -9,7 +13,7 @@ import { speakPortuguese } from '../lib/speak-portuguese'
 
 type PottyNowProps = {
   events: Array<PottyEvent>
-  onLog: (kind: PottyKind) => Promise<void>
+  onLog: (kind: PottyKind, when?: CustomPottyWhen) => Promise<void>
   onDelete: (eventId: string) => Promise<void>
 }
 
@@ -29,12 +33,13 @@ const buttons: Array<{ kind: PottyKind; image: string; tone: string }> = [
 export function PottyNow({ events, onLog, onDelete }: PottyNowProps) {
   const today = pottyDayKey(Date.now())
   const todays = eventsOnDay(events, today)
+  const [customOpen, setCustomOpen] = useState(false)
 
   return (
     <section className="rounded-[22px] border-4 border-[#b87a1c] bg-[#fff8ec] p-4 shadow-[0_18px_40px_rgba(42,33,24,0.08)]">
       <h3 className="font-display text-2xl">Fez agora?</h3>
       <p className="mt-1 text-sm text-[#5a4c3d]">
-        Um toque anota o horário. Serve para a professora e para casa.
+        Um toque anota agora. Se já passou, coloque a hora.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {buttons.map((button) => (
@@ -57,7 +62,23 @@ export function PottyNow({ events, onLog, onDelete }: PottyNowProps) {
             </span>
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => setCustomOpen(true)}
+          className="font-display min-h-14 rounded-2xl border-4 border-[#b87a1c] bg-[#fff3d6] text-xl font-bold text-[#8a5a10] sm:col-span-2"
+        >
+          Outro horário
+        </button>
       </div>
+      {customOpen ? (
+        <CustomPottyTimeForm
+          onCancel={() => setCustomOpen(false)}
+          onSubmit={(kind, when) => {
+            void onLog(kind, when)
+            setCustomOpen(false)
+          }}
+        />
+      ) : null}
       <p className="mt-4 font-display text-lg">Hoje</p>
       {todays.length === 0 ? (
         <p className="mt-1 text-sm text-[#5a4c3d]">Nada anotado ainda.</p>

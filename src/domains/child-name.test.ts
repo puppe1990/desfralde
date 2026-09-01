@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeChildName } from './child-name'
+import { assertCanDeleteChild, normalizeChildName } from './child-name'
 
 describe('normalizeChildName', () => {
   it('trims the caregiver-entered name', () => {
@@ -17,5 +17,14 @@ describe('normalizeChildName', () => {
     expect(() => normalizeChildName('A'.repeat(81))).toThrow(
       'Nome da criança deve ter no máximo 80 caracteres',
     )
+  })
+})
+
+describe('assertCanDeleteChild', () => {
+  it('blocks deleting the last child in the house', () => {
+    expect(() => assertCanDeleteChild(1)).toThrow(
+      'A família precisa de pelo menos uma criança no quadro',
+    )
+    expect(() => assertCanDeleteChild(2)).not.toThrow()
   })
 })

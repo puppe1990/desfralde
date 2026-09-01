@@ -20,6 +20,7 @@ import { Route as CriancasChildIdAvatarRouteImport } from './routes/criancas.$ch
 import { Route as CriancasChildIdConfiguracaoRouteImport } from './routes/criancas.$childId.configuracao'
 import { Route as CriancasChildIdDiarioRouteImport } from './routes/criancas.$childId.diario'
 import { Route as CriancasChildIdEstrelasRouteImport } from './routes/criancas.$childId.estrelas'
+import { Route as CriancasChildIdHorariosRouteImport } from './routes/criancas.$childId.horarios'
 import { Route as CriancasChildIdImprimirRouteImport } from './routes/criancas.$childId.imprimir'
 import { Route as CriancasChildIdPassosRouteImport } from './routes/criancas.$childId.passos'
 
@@ -79,6 +80,11 @@ const CriancasChildIdEstrelasRoute = CriancasChildIdEstrelasRouteImport.update({
   path: '/estrelas',
   getParentRoute: () => CriancasChildIdRoute,
 } as any)
+const CriancasChildIdHorariosRoute = CriancasChildIdHorariosRouteImport.update({
+  id: '/horarios',
+  path: '/horarios',
+  getParentRoute: () => CriancasChildIdRoute,
+} as any)
 const CriancasChildIdImprimirRoute = CriancasChildIdImprimirRouteImport.update({
   id: '/imprimir',
   path: '/imprimir',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/criancas/$childId/configuracao': typeof CriancasChildIdConfiguracaoRoute
   '/criancas/$childId/diario': typeof CriancasChildIdDiarioRoute
   '/criancas/$childId/estrelas': typeof CriancasChildIdEstrelasRoute
+  '/criancas/$childId/horarios': typeof CriancasChildIdHorariosRoute
   '/criancas/$childId/imprimir': typeof CriancasChildIdImprimirRoute
   '/criancas/$childId/passos': typeof CriancasChildIdPassosRoute
   '/criancas/$childId/': typeof CriancasChildIdIndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/criancas/$childId/configuracao': typeof CriancasChildIdConfiguracaoRoute
   '/criancas/$childId/diario': typeof CriancasChildIdDiarioRoute
   '/criancas/$childId/estrelas': typeof CriancasChildIdEstrelasRoute
+  '/criancas/$childId/horarios': typeof CriancasChildIdHorariosRoute
   '/criancas/$childId/imprimir': typeof CriancasChildIdImprimirRoute
   '/criancas/$childId/passos': typeof CriancasChildIdPassosRoute
   '/criancas/$childId': typeof CriancasChildIdIndexRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/criancas/$childId/configuracao': typeof CriancasChildIdConfiguracaoRoute
   '/criancas/$childId/diario': typeof CriancasChildIdDiarioRoute
   '/criancas/$childId/estrelas': typeof CriancasChildIdEstrelasRoute
+  '/criancas/$childId/horarios': typeof CriancasChildIdHorariosRoute
   '/criancas/$childId/imprimir': typeof CriancasChildIdImprimirRoute
   '/criancas/$childId/passos': typeof CriancasChildIdPassosRoute
   '/criancas/$childId/': typeof CriancasChildIdIndexRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/criancas/$childId/configuracao'
     | '/criancas/$childId/diario'
     | '/criancas/$childId/estrelas'
+    | '/criancas/$childId/horarios'
     | '/criancas/$childId/imprimir'
     | '/criancas/$childId/passos'
     | '/criancas/$childId/'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/criancas/$childId/configuracao'
     | '/criancas/$childId/diario'
     | '/criancas/$childId/estrelas'
+    | '/criancas/$childId/horarios'
     | '/criancas/$childId/imprimir'
     | '/criancas/$childId/passos'
     | '/criancas/$childId'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/criancas/$childId/configuracao'
     | '/criancas/$childId/diario'
     | '/criancas/$childId/estrelas'
+    | '/criancas/$childId/horarios'
     | '/criancas/$childId/imprimir'
     | '/criancas/$childId/passos'
     | '/criancas/$childId/'
@@ -270,6 +282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CriancasChildIdEstrelasRouteImport
       parentRoute: typeof CriancasChildIdRoute
     }
+    '/criancas/$childId/horarios': {
+      id: '/criancas/$childId/horarios'
+      path: '/horarios'
+      fullPath: '/criancas/$childId/horarios'
+      preLoaderRoute: typeof CriancasChildIdHorariosRouteImport
+      parentRoute: typeof CriancasChildIdRoute
+    }
     '/criancas/$childId/imprimir': {
       id: '/criancas/$childId/imprimir'
       path: '/imprimir'
@@ -292,6 +311,7 @@ interface CriancasChildIdRouteChildren {
   CriancasChildIdConfiguracaoRoute: typeof CriancasChildIdConfiguracaoRoute
   CriancasChildIdDiarioRoute: typeof CriancasChildIdDiarioRoute
   CriancasChildIdEstrelasRoute: typeof CriancasChildIdEstrelasRoute
+  CriancasChildIdHorariosRoute: typeof CriancasChildIdHorariosRoute
   CriancasChildIdImprimirRoute: typeof CriancasChildIdImprimirRoute
   CriancasChildIdPassosRoute: typeof CriancasChildIdPassosRoute
   CriancasChildIdIndexRoute: typeof CriancasChildIdIndexRoute
@@ -302,6 +322,7 @@ const CriancasChildIdRouteChildren: CriancasChildIdRouteChildren = {
   CriancasChildIdConfiguracaoRoute: CriancasChildIdConfiguracaoRoute,
   CriancasChildIdDiarioRoute: CriancasChildIdDiarioRoute,
   CriancasChildIdEstrelasRoute: CriancasChildIdEstrelasRoute,
+  CriancasChildIdHorariosRoute: CriancasChildIdHorariosRoute,
   CriancasChildIdImprimirRoute: CriancasChildIdImprimirRoute,
   CriancasChildIdPassosRoute: CriancasChildIdPassosRoute,
   CriancasChildIdIndexRoute: CriancasChildIdIndexRoute,

@@ -4,6 +4,11 @@ import { getDesfraldeStore } from '../db/client'
 import type { ChildAvatar } from '../domains/child-avatar'
 import { normalizeChildAvatar } from '../domains/child-avatar'
 import { normalizeChildName } from '../domains/child-name'
+import {
+  occurredAtOnPottyDay,
+  parsePottyKind,
+  pottyDayKey,
+} from '../domains/potty-log'
 import type { StarKind } from '../domains/star-chart'
 import { requireSignedInUserId } from './require-signed-in-user'
 
@@ -56,10 +61,28 @@ export const listPottyEventsFn = createServerFn({ method: 'GET' })
   })
 
 export const logPottyEventFn = createServerFn({ method: 'POST' })
-  .validator((data: { childId: string; kind: string }) => data)
+  .validator(
+    (data: { childId: string; kind: string; clock?: string; day?: string }) => {
+      const kind = parsePottyKind(data.kind)
+      if (!data.clock) {
+        return { childId: data.childId, kind }
+      }
+      const day = data.day || pottyDayKey(Date.now())
+      return {
+        childId: data.childId,
+        kind,
+        occurredAt: occurredAtOnPottyDay(day, data.clock),
+      }
+    },
+  )
   .handler(async ({ data }) => {
     const userId = await requireSignedInUserId()
-    return getDesfraldeStore().logPottyEvent(userId, data.childId, data.kind)
+    return getDesfraldeStore().logPottyEvent(
+      userId,
+      data.childId,
+      data.kind,
+      data.occurredAt,
+    )
   })
 
 export const deletePottyEventFn = createServerFn({ method: 'POST' })
@@ -86,4 +109,32 @@ export const updateChildAvatarFn = createServerFn({ method: 'POST' })
       data.childId,
       data.avatar,
     )
+  })
+
+export const updateChildFn = createServerFn({ method: 'POST' })
+  .validator(
+    (data: {
+      childId: string
+      name: string
+      avatar: Partial<ChildAvatar>
+    }) => ({
+      childId: data.childId,
+      name: normalizeChildName(data.name),
+      avatar: normalizeChildAvatar(data.avatar),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const userId = await requireSignedInUserId()
+    return getDesfraldeStore().updateChild(userId, data.childId, {
+      name: data.name,
+      avatar: data.avatar,
+    })
+  })
+
+export const deleteChildFn = createServerFn({ method: 'POST' })
+  .validator((data: { childId: string }) => data)
+  .handler(async ({ data }) => {
+    const userId = await requireSignedInUserId()
+    await getDesfraldeStore().deleteChild(userId, data.childId)
+    return { ok: true as const }
   })

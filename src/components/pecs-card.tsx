@@ -1,10 +1,25 @@
+import { useState } from 'react'
+import type { CSSProperties, PointerEvent } from 'react'
+
 import { speakPortuguese } from '../lib/speak-portuguese'
+import { tapPointPercent } from '../lib/tap-point'
 import type { CardTone } from '../domains/pecs-card'
 
 const toneClass: Record<CardTone, string> = {
   terra: 'border-[#9a3d28] bg-[#fde7df] text-[#9a3d28]',
   sage: 'border-[#335648] bg-[#e7f1eb] text-[#335648]',
   honey: 'border-[#b87a1c] bg-[#fff3d6] text-[#8a5a10]',
+}
+
+function pecsCardClass(tone: CardTone, speaking: boolean) {
+  const speakingClass = speaking ? 'is-speaking' : ''
+  return `pecs-card relative w-full overflow-hidden rounded-[22px] border-4 bg-[#fff8ec] text-left shadow-[0_18px_40px_rgba(42,33,24,0.12)] ${toneClass[tone]} ${speakingClass}`
+}
+
+function restartSpeaking(card: HTMLButtonElement) {
+  card.classList.remove('is-speaking')
+  void card.offsetWidth
+  card.classList.add('is-speaking')
 }
 
 type PecsCardProps = {
@@ -15,6 +30,23 @@ type PecsCardProps = {
   number?: number
 }
 
+function useCardPress() {
+  const [burst, setBurst] = useState(0)
+  const [tap, setTap] = useState({ x: 50, y: 50 })
+
+  function markTap(event: PointerEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    setTap(tapPointPercent(rect, event.clientX, event.clientY))
+  }
+
+  function press(card: HTMLButtonElement) {
+    restartSpeaking(card)
+    setBurst((count) => count + 1)
+  }
+
+  return { tap, speaking: burst > 0, markTap, press }
+}
+
 export function PecsCard({
   label,
   speak,
@@ -22,11 +54,23 @@ export function PecsCard({
   tone,
   number,
 }: PecsCardProps) {
+  const press = useCardPress()
+
   return (
     <button
       type="button"
-      onClick={() => speakPortuguese(speak)}
-      className={`pecs-card relative w-full overflow-hidden rounded-[22px] border-4 bg-[#fff8ec] text-left shadow-[0_18px_40px_rgba(42,33,24,0.12)] ${toneClass[tone]}`}
+      onPointerDown={press.markTap}
+      onClick={(event) => {
+        speakPortuguese(speak)
+        press.press(event.currentTarget)
+      }}
+      style={
+        {
+          '--tap-x': `${press.tap.x}%`,
+          '--tap-y': `${press.tap.y}%`,
+        } as CSSProperties
+      }
+      className={pecsCardClass(tone, press.speaking)}
     >
       <span className="relative block aspect-square overflow-hidden bg-[#f7f0e4]">
         {number != null ? (

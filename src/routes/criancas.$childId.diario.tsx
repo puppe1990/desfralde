@@ -45,9 +45,16 @@ function DiarioPage() {
       <div className="mt-6">
         <PottyNow
           events={events}
-          onLog={(kind) =>
+          onLog={(kind, when) =>
             refreshAfter(() =>
-              logPottyEventFn({ data: { childId: board.child.id, kind } }),
+              logPottyEventFn({
+                data: {
+                  childId: board.child.id,
+                  kind,
+                  clock: when?.clock,
+                  day: when?.day,
+                },
+              }),
             )
           }
           onDelete={(eventId) =>

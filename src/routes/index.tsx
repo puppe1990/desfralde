@@ -1,6 +1,6 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { ChildAvatar } from '../components/child-avatar'
+import { ChildQuadros } from '../components/child-quadros'
 import { LandingPage } from '../components/landing-page'
 import { UserChip } from '../components/user-chip'
 import { getCurrentUserFn } from '../server/auth'
@@ -36,22 +36,7 @@ function Home() {
         <UserChip name={user.name} />
       </div>
 
-      <ul className="mt-10 grid gap-3">
-        {family?.children.map((child) => (
-          <li key={child.id}>
-            <Link
-              to="/criancas/$childId"
-              params={{ childId: child.id }}
-              className="flex items-center gap-4 rounded-2xl bg-[#fff8ec] px-4 py-3 text-[#2a2118] no-underline shadow-[0_18px_40px_rgba(42,33,24,0.08)]"
-            >
-              <span className="size-20 shrink-0 overflow-hidden rounded-2xl border-2 border-[#b87a1c] bg-[#f7f0e4]">
-                <ChildAvatar name={child.name} avatar={child.avatar} />
-              </span>
-              <span className="font-display text-2xl">{child.name}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {family ? <ChildQuadros kids={family.children} /> : null}
     </main>
   )
 }

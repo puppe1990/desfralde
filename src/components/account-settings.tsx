@@ -3,6 +3,7 @@ import { Link, redirect } from '@tanstack/react-router'
 import { getCurrentUserFn } from '../server/auth'
 import { getFamilyFn } from '../server/onboarding'
 import { PasswordChangeForm } from './password-change-form'
+import { SettingsTabs } from './settings-tabs'
 import { TeacherAccessForm } from './teacher-access-form'
 import { TherapistNameForm } from './therapist-name-form'
 
@@ -32,9 +33,11 @@ export function AccountSettings({
       <p className="mt-4 text-[#5a4c3d]">
         Senha da conta, terapeuta e acesso da professora da creche.
       </p>
-      <PasswordChangeForm email={user.email} />
-      <TherapistNameForm therapistName={therapistName} />
-      <TeacherAccessForm teacherName={teacherName} />
+      <SettingsTabs
+        senha={<PasswordChangeForm email={user.email} />}
+        terapeuta={<TherapistNameForm therapistName={therapistName} />}
+        professora={<TeacherAccessForm teacherName={teacherName} />}
+      />
       <p className="mt-8">
         {childId ? (
           <Link
