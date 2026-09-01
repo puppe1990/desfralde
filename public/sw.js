@@ -1,4 +1,4 @@
-const CACHE = 'desfralde-static-v1'
+const CACHE = 'desfralde-static-v2'
 
 const PRECACHE = [
   '/favicon.svg',
@@ -10,26 +10,7 @@ const PRECACHE = [
   '/icons/icon-512.png',
   '/icons/icon-512-maskable.png',
   '/manifest.webmanifest',
-  '/pecs/ajuda.jpg',
-  '/pecs/banheiro.jpg',
-  '/pecs/calca.jpg',
-  '/pecs/coco-pedido.jpg',
-  '/pecs/descarga.jpg',
-  '/pecs/fazer-coco.jpg',
-  '/pecs/fazer-xixi.jpg',
-  '/pecs/ir-banheiro.jpg',
-  '/pecs/lavar-maos.jpg',
-  '/pecs/papel.jpg',
-  '/pecs/personagem.jpg',
-  '/pecs/pronto.jpg',
-  '/pecs/secar-maos.jpg',
-  '/pecs/sentar.jpg',
-  '/pecs/subir-calca.jpg',
-  '/pecs/xixi-pedido.jpg',
 ]
-
-const STATIC_EXT =
-  /\.(?:png|jpe?g|gif|svg|ico|webp|woff2?|ttf|css|js|webmanifest)$/i
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -64,12 +45,35 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/_')) return
   if (request.mode === 'navigate') return
 
-  const cacheable =
-    STATIC_EXT.test(url.pathname) || url.pathname.startsWith('/assets/')
-  if (!cacheable) return
+  if (
+    /\.(?:js|css)$/i.test(url.pathname) ||
+    url.pathname.startsWith('/assets/')
+  ) {
+    event.respondWith(networkFirst(request))
+    return
+  }
+
+  if (!/\.(?:png|jpe?g|gif|svg|ico|webp|woff2?|ttf|webmanifest)$/i.test(url.pathname)) {
+    return
+  }
 
   event.respondWith(cacheFirst(request))
 })
+
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      const cache = await caches.open(CACHE)
+      await cache.put(request, response.clone())
+    }
+    return response
+  } catch {
+    const cached = await caches.match(request)
+    if (cached) return cached
+    throw new Error(`Offline: ${request.url}`)
+  }
+}
 
 async function cacheFirst(request) {
   const cached = await caches.match(request)

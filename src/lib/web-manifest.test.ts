@@ -56,3 +56,13 @@ describe('PWA manifest', () => {
     expect(existsSync(resolve(root, 'public/sw.js'))).toBe(true)
   })
 })
+
+describe('service worker', () => {
+  const sw = readFileSync(resolve(root, 'public/sw.js'), 'utf8')
+
+  it('drops the old static cache and does not pin the generic PECS kit', () => {
+    expect(sw).toMatch(/desfralde-static-v2/)
+    expect(sw).not.toContain('/pecs/xixi-pedido.jpg')
+    expect(sw).toContain('networkFirst')
+  })
+})
