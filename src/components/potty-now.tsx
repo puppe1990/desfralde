@@ -2,6 +2,8 @@ import { useState } from 'react'
 
 import { CustomPottyTimeForm } from './custom-potty-time-form'
 import type { CustomPottyWhen } from './custom-potty-time-form'
+import { pecsCardImageSrc } from '../domains/pecs-card'
+import type { ChildAvatar } from '../domains/child-avatar'
 import {
   POTTY_KIND_LABELS,
   eventsOnDay,
@@ -13,6 +15,7 @@ import { speakPortuguese } from '../lib/speak-portuguese'
 
 type PottyNowProps = {
   events: Array<PottyEvent>
+  avatar?: ChildAvatar
   onLog: (kind: PottyKind, when?: CustomPottyWhen) => Promise<void>
   onDelete: (eventId: string) => Promise<void>
 }
@@ -30,7 +33,7 @@ const buttons: Array<{ kind: PottyKind; image: string; tone: string }> = [
   },
 ]
 
-export function PottyNow({ events, onLog, onDelete }: PottyNowProps) {
+export function PottyNow({ events, avatar, onLog, onDelete }: PottyNowProps) {
   const today = pottyDayKey(Date.now())
   const todays = eventsOnDay(events, today)
   const [customOpen, setCustomOpen] = useState(false)
@@ -53,7 +56,7 @@ export function PottyNow({ events, onLog, onDelete }: PottyNowProps) {
             className={`flex min-h-20 items-center gap-3 rounded-2xl border-4 px-3 py-2 text-left ${button.tone}`}
           >
             <img
-              src={button.image}
+              src={pecsCardImageSrc(button.kind, button.image, avatar)}
               alt=""
               className="size-16 rounded-xl object-cover"
             />

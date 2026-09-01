@@ -118,6 +118,39 @@ describe('family onboarding', () => {
     expect(board.child.name).toBe('Ana')
   })
 
+  it('adds another child to the house after onboarding', async () => {
+    const { client, store } = openMemoryDesfraldeStore()
+    opened.push(client)
+
+    const maria = await store.registerCaregiver({
+      name: 'Maria',
+      email: 'maria@casa.com',
+      password: 'solzinho123',
+    })
+    await store.completeOnboarding(maria.id, {
+      parents: [{ name: 'Maria', role: 'mae' }],
+      children: [{ name: 'Ana' }],
+      staff: [],
+    })
+
+    const added = await store.addChildToFamily(maria.id, '  Pedro  ', {
+      gender: 'menino',
+      skinTone: 'golden',
+      hairType: 'wavy',
+      hairColor: 'brown',
+    })
+    expect(added.name).toBe('Pedro')
+    expect(added.avatar.gender).toBe('menino')
+
+    const names = (await store.getFamily(maria.id)).children.map(
+      (child) => child.name,
+    )
+    expect(names.sort()).toEqual(['Ana', 'Pedro'])
+
+    const board = await store.getChildBoard(added.id)
+    expect(board.pedidos[0]?.label).toBe('Xixi')
+  })
+
   it('renames a child and deletes an extra child from the house', async () => {
     const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)

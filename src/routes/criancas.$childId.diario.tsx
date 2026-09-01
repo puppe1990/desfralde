@@ -45,6 +45,7 @@ function DiarioPage() {
       <div className="mt-6">
         <PottyNow
           events={events}
+          avatar={board.child.avatar}
           onLog={(kind, when) =>
             refreshAfter(() =>
               logPottyEventFn({

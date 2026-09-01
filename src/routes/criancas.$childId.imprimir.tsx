@@ -36,14 +36,19 @@ function ImprimirPage() {
       </h3>
       <div className="grid grid-cols-2 gap-4">
         {board.pedidos.map((card) => (
-          <PecsCard key={card.id} {...card} />
+          <PecsCard key={card.id} {...card} avatar={board.child.avatar} />
         ))}
       </div>
 
       <h3 className="font-display mt-8 mb-3 text-2xl">Rotina</h3>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {board.rotina.map((card, index) => (
-          <PecsCard key={card.id} {...card} number={index + 1} />
+          <PecsCard
+            key={card.id}
+            {...card}
+            number={index + 1}
+            avatar={board.child.avatar}
+          />
         ))}
       </div>
     </main>

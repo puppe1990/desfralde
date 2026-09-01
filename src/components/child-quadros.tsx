@@ -3,14 +3,34 @@ import { useState } from 'react'
 
 import { ChildAvatar } from './child-avatar'
 import { ChildEditModal } from './child-edit-modal'
-import { deleteChildFn, updateChildFn } from '../server/child-board'
+import {
+  createChildFn,
+  deleteChildFn,
+  updateChildFn,
+} from '../server/child-board'
 import type { ChildAvatar as Avatar } from '../domains/child-avatar'
 import type { ChildRecord } from '../db/desfralde-records'
 
 export function ChildQuadros({ kids }: { kids: Array<ChildRecord> }) {
   const router = useRouter()
   const [editing, setEditing] = useState<ChildRecord | null>(null)
+  const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  async function addChild(patch: { name: string; avatar: Avatar }) {
+    setError(null)
+    try {
+      await createChildFn({
+        data: { name: patch.name, avatar: patch.avatar },
+      })
+      setCreating(false)
+      await router.invalidate()
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : 'Não foi possível criar',
+      )
+    }
+  }
 
   async function saveChild(patch: { name: string; avatar: Avatar }) {
     if (!editing) return
@@ -75,13 +95,48 @@ export function ChildQuadros({ kids }: { kids: Array<ChildRecord> }) {
             </button>
           </li>
         ))}
+        <li>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null)
+              setEditing(null)
+              setCreating(true)
+            }}
+            className="flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-[#b87a1c] bg-[#fff8ec] px-4 py-3 text-left text-[#8a5a10]"
+          >
+            <span
+              aria-hidden="true"
+              className="grid size-20 shrink-0 place-items-center rounded-2xl border-2 border-dashed border-[#b87a1c] font-display text-4xl"
+            >
+              +
+            </span>
+            <span className="font-display text-2xl">Outra criança</span>
+          </button>
+        </li>
       </ul>
-      {error ? <p className="mt-3 text-[#9a3d28]">{error}</p> : null}
+      {error && !creating && !editing ? (
+        <p className="mt-3 text-[#9a3d28]">{error}</p>
+      ) : null}
+      {creating ? (
+        <ChildEditModal
+          error={error}
+          onClose={() => {
+            setError(null)
+            setCreating(false)
+          }}
+          onSave={(patch) => void addChild(patch)}
+        />
+      ) : null}
       {editing ? (
         <ChildEditModal
           child={editing}
           childCount={kids.length}
-          onClose={() => setEditing(null)}
+          error={error}
+          onClose={() => {
+            setError(null)
+            setEditing(null)
+          }}
           onSave={(patch) => void saveChild(patch)}
           onDelete={() => void removeChild()}
         />
