@@ -12,3 +12,9 @@ export function normalizePersonName(name: string, label: string): string {
 export function normalizeChildName(name: string): string {
   return normalizePersonName(name, 'Nome da criança')
 }
+
+export function assertCanDeleteChild(childCount: number): void {
+  if (childCount <= 1) {
+    throw new Error('A família precisa de pelo menos uma criança no quadro')
+  }
+}

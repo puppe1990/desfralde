@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { formatPottyClock, occurredAtOnPottyDay } from '../domains/potty-log'
 import { openMemoryDesfraldeStore } from './memory-desfralde-store'
 
 describe('potty diary and teacher invite', () => {
@@ -39,6 +40,32 @@ describe('potty diary and teacher invite', () => {
     expect(
       (await store.listPottyEvents(maria.id, childId)).map((event) => event.id),
     ).toEqual([second.id])
+  })
+
+  it('records a pee at a custom São Paulo clock time', async () => {
+    const { client, store } = openMemoryDesfraldeStore()
+    opened.push(client)
+
+    const maria = await store.registerCaregiver({
+      name: 'Maria',
+      email: 'maria@casa.com',
+      password: 'solzinho123',
+    })
+    const family = await store.completeOnboarding(maria.id, {
+      parents: [{ name: 'Maria', role: 'mae' }],
+      children: [{ name: 'Ana' }],
+      staff: [],
+    })
+    const occurredAt = occurredAtOnPottyDay('2026-09-01', '09:15')
+    const logged = await store.logPottyEvent(
+      maria.id,
+      family.children[0].id,
+      'xixi',
+      occurredAt,
+    )
+
+    expect(logged.occurredAt).toBe(occurredAt)
+    expect(formatPottyClock(logged.occurredAt)).toBe('09:15')
   })
 
   it('does not let another family read or write the diary', async () => {

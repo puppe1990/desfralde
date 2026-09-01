@@ -14,7 +14,7 @@ export function TherapistNameForm({
   const [done, setDone] = useState(false)
 
   return (
-    <section className="mt-6 rounded-[22px] border-4 border-[#335648] bg-[#fff8ec] p-5 shadow-[0_18px_40px_rgba(42,33,24,0.08)]">
+    <section className="rounded-[22px] border-4 border-[#335648] bg-[#fff8ec] p-5 shadow-[0_18px_40px_rgba(42,33,24,0.08)]">
       <h2 className="font-display text-2xl">Terapeuta</h2>
       <p className="mt-1 text-sm text-[#5a4c3d]">
         {therapistName

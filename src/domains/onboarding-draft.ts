@@ -55,6 +55,24 @@ function asStaffRole(role: string): StaffRole {
   return role as StaffRole
 }
 
+export function addAdultRow<T extends { name: string }>(
+  people: Array<T>,
+  blank: T,
+): Array<T> {
+  if (people.some((person) => !person.name.trim())) return people
+  return [...people, blank]
+}
+
+export function removeAdultRow<T>(
+  people: Array<T>,
+  index: number,
+  minimum = 0,
+): Array<T> {
+  if (people.length <= minimum) return people
+  if (index < 0 || index >= people.length) return people
+  return people.filter((_, current) => current !== index)
+}
+
 export function validateOnboardingDraft(
   input: RawOnboardingDraft,
 ): OnboardingDraft {

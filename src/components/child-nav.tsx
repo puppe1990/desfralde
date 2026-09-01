@@ -1,12 +1,14 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 
 import { ChildAvatar } from './child-avatar'
+import { childNavIsActive, childNavPillClass } from './child-nav-pill'
 import { UserChip } from './user-chip'
 import type { ChildAvatar as Avatar } from '../domains/child-avatar'
 
 const links = [
   { to: '/criancas/$childId', label: 'Quadro' },
   { to: '/criancas/$childId/diario', label: 'Diário' },
+  { to: '/criancas/$childId/horarios', label: 'Horários' },
   { to: '/criancas/$childId/passos', label: 'Passo a passo' },
   { to: '/criancas/$childId/estrelas', label: 'Estrelas' },
   { to: '/criancas/$childId/avatar', label: 'Avatar' },
@@ -24,6 +26,10 @@ export function ChildNav({
   avatar: Avatar
   userName: string
 }) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+
   return (
     <header className="sticky top-0 z-20 border-b border-[#2a2118]/10 bg-[#fff8ec]/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -47,11 +53,10 @@ export function ChildNav({
               key={link.to}
               to={link.to}
               params={{ childId }}
-              className="rounded-full bg-[#2a2118]/6 px-3 py-1.5 text-sm font-bold text-[#2a2118] no-underline"
-              activeProps={{
-                className:
-                  'rounded-full bg-[#2a2118] px-3 py-1.5 text-sm font-bold text-[#fff8ec] no-underline',
-              }}
+              activeOptions={{ exact: true, includeSearch: false }}
+              className={childNavPillClass(
+                childNavIsActive(link.to, childId, pathname),
+              )}
             >
               {link.label}
             </Link>

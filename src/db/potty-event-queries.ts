@@ -16,15 +16,21 @@ export function createPottyEventQueries(
       userId: string,
       childId: string,
       rawKind: string,
+      occurredAt = Date.now(),
     ): Promise<PottyEvent> {
       const database = await readyDb()
       await getFamilyChildBoard(userId, childId)
       const kind = parsePottyKind(rawKind)
+      if (!Number.isFinite(occurredAt)) {
+        throw new Error(
+          `Horário inválido: ${JSON.stringify(occurredAt)}. Use um instante em milissegundos.`,
+        )
+      }
       const row = {
         id: crypto.randomUUID(),
         childId,
         kind,
-        occurredAt: Date.now(),
+        occurredAt,
       }
       await database.insert(pottyEvents).values(row)
       return { id: row.id, kind, occurredAt: row.occurredAt }

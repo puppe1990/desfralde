@@ -21,6 +21,37 @@ import type { ReadyDatabase } from './ready-database'
 import { children, families, familyAdults, users } from './schema'
 
 export function createFamilyQueries(readyDb: ReadyDatabase) {
+  async function insertHouseholdUser(
+    familyId: string,
+    name: string,
+    email: string,
+    password: string,
+  ): Promise<UserRecord> {
+    const database = await readyDb()
+    const normalizedEmail = normalizeAccountEmail(email)
+    assertPasswordLength(password, 'A senha')
+    const existing = firstRow(
+      await database
+        .select()
+        .from(users)
+        .where(eq(users.email, normalizedEmail))
+        .limit(1),
+    )
+    if (existing) {
+      throw new Error(`Já existe uma conta com este e-mail: ${normalizedEmail}`)
+    }
+    const invited = {
+      id: crypto.randomUUID(),
+      name,
+      email: normalizedEmail,
+      passwordHash: await hashPassword(password),
+      familyId,
+      createdAt: Date.now(),
+    }
+    await database.insert(users).values(invited)
+    return toUserRecord(invited)
+  }
+
   async function getFamily(userId: string): Promise<FamilyRecord> {
     const database = await readyDb()
     const user = firstRow(
@@ -96,6 +127,19 @@ export function createFamilyQueries(readyDb: ReadyDatabase) {
       return upsertFamilyStaff(userId, name, 'professora', 'Nome da professora')
     },
 
+    async addHouseholdLogin(
+      ownerUserId: string,
+      input: { name: string; email: string; password: string },
+    ): Promise<UserRecord> {
+      const family = await getFamily(ownerUserId)
+      return insertHouseholdUser(
+        family.id,
+        normalizePersonName(input.name, 'Nome'),
+        input.email,
+        input.password,
+      )
+    },
+
     async inviteToFamily(
       userId: string,
       input: {
@@ -105,8 +149,6 @@ export function createFamilyQueries(readyDb: ReadyDatabase) {
         role: string
       },
     ): Promise<UserRecord> {
-      const database = await readyDb()
-      const family = await getFamily(userId)
       if (!(STAFF_ROLES as ReadonlyArray<string>).includes(input.role)) {
         throw new Error(`Papel da equipe inválido: ${input.role}`)
       }
@@ -114,31 +156,15 @@ export function createFamilyQueries(readyDb: ReadyDatabase) {
       const label =
         role === 'professora' ? 'Nome da professora' : 'Nome da terapeuta'
       const name = normalizePersonName(input.name, label)
-      const email = normalizeAccountEmail(input.email)
-      assertPasswordLength(input.password, 'A senha')
-
-      const existing = firstRow(
-        await database
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1),
-      )
-      if (existing) {
-        throw new Error(`Já existe uma conta com este e-mail: ${email}`)
-      }
-
-      const invited = {
-        id: crypto.randomUUID(),
+      const family = await getFamily(userId)
+      const invited = await insertHouseholdUser(
+        family.id,
         name,
-        email,
-        passwordHash: await hashPassword(input.password),
-        familyId: family.id,
-        createdAt: Date.now(),
-      }
-      await database.insert(users).values(invited)
+        input.email,
+        input.password,
+      )
       await upsertFamilyStaff(userId, name, role, label)
-      return toUserRecord(invited)
+      return invited
     },
 
     async completeOnboarding(

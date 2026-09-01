@@ -1,12 +1,15 @@
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
+import { AdultList } from './adult-list'
 import { AvatarPicker } from './avatar-picker'
 import { defaultChildAvatar } from '../domains/child-avatar'
 import type { ChildAvatar } from '../domains/child-avatar'
 import {
   PARENT_ROLE_LABELS,
   STAFF_ROLE_LABELS,
+  addAdultRow,
+  removeAdultRow,
 } from '../domains/onboarding-draft'
 import type { ParentRole, StaffRole } from '../domains/onboarding-draft'
 import { completeOnboardingFn } from '../server/onboarding'
@@ -76,36 +79,47 @@ export function OnboardingWizard({
           roles={['mae', 'pai']}
           labels={PARENT_ROLE_LABELS}
           addLabel="Adicionar responsável"
-          onChange={setParents}
-          onAdd={() =>
-            setParents([
-              ...parents,
-              { name: '', role: parents.length ? 'pai' : 'mae' },
-            ])
+          minimum={1}
+          blankRole={
+            parents.some((parent) => parent.role === 'mae') ? 'pai' : 'mae'
           }
+          onChange={setParents}
         />
       ) : null}
 
       {step === 1 ? (
         <div className="grid gap-3">
           {kids.map((child, index) => (
-            <input
-              key={index}
-              value={child.name}
-              placeholder={`Nome da criança ${index + 1}`}
-              onChange={(event) => {
-                const next = [...kids]
-                next[index] = { ...child, name: event.target.value }
-                setKids(next)
-              }}
-              className="rounded-2xl border-2 border-[#2a2118] bg-[#fff8ec] px-4 py-3"
-            />
+            <div key={index} className="flex gap-2">
+              <input
+                value={child.name}
+                placeholder={`Nome da criança ${index + 1}`}
+                onChange={(event) => {
+                  const next = [...kids]
+                  next[index] = { ...child, name: event.target.value }
+                  setKids(next)
+                }}
+                className="min-w-0 flex-1 rounded-2xl border-2 border-[#2a2118] bg-[#fff8ec] px-4 py-3"
+              />
+              {kids.length > 1 ? (
+                <button
+                  type="button"
+                  aria-label={`Remover criança ${index + 1}`}
+                  onClick={() => setKids(removeAdultRow(kids, index, 1))}
+                  className="px-3 text-2xl font-bold text-[#9a3d28]"
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
           ))}
           <button
             type="button"
             className="justify-self-start font-bold text-[#9a3d28]"
             onClick={() =>
-              setKids([...kids, { name: '', avatar: defaultChildAvatar() }])
+              setKids(
+                addAdultRow(kids, { name: '', avatar: defaultChildAvatar() }),
+              )
             }
           >
             + Outra criança
@@ -123,8 +137,9 @@ export function OnboardingWizard({
             roles={['terapeuta', 'professora']}
             labels={STAFF_ROLE_LABELS}
             addLabel="Adicionar terapeuta ou professora"
+            minimum={0}
+            blankRole="terapeuta"
             onChange={setStaff}
-            onAdd={() => setStaff([...staff, { name: '', role: 'terapeuta' }])}
           />
         </div>
       ) : null}
@@ -191,63 +206,6 @@ export function OnboardingWizard({
           </button>
         )}
       </div>
-    </div>
-  )
-}
-
-function AdultList<TRole extends string>({
-  people,
-  roles,
-  labels,
-  addLabel,
-  onChange,
-  onAdd,
-}: {
-  people: Array<{ name: string; role: TRole }>
-  roles: Array<TRole>
-  labels: Record<TRole, string>
-  addLabel: string
-  onChange: (people: Array<{ name: string; role: TRole }>) => void
-  onAdd: () => void
-}) {
-  return (
-    <div className="grid gap-3">
-      {people.map((person, index) => (
-        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_160px]">
-          <input
-            value={person.name}
-            placeholder="Nome"
-            onChange={(event) => {
-              const next = [...people]
-              next[index] = { ...person, name: event.target.value }
-              onChange(next)
-            }}
-            className="rounded-2xl border-2 border-[#2a2118] bg-[#fff8ec] px-4 py-3"
-          />
-          <select
-            value={person.role}
-            onChange={(event) => {
-              const next = [...people]
-              next[index] = { ...person, role: event.target.value as TRole }
-              onChange(next)
-            }}
-            className="rounded-2xl border-2 border-[#2a2118] bg-[#fff8ec] px-4 py-3"
-          >
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {labels[role]}
-              </option>
-            ))}
-          </select>
-        </div>
-      ))}
-      <button
-        type="button"
-        className="justify-self-start font-bold text-[#9a3d28]"
-        onClick={onAdd}
-      >
-        + {addLabel}
-      </button>
     </div>
   )
 }
