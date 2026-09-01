@@ -10,8 +10,8 @@ import {
   SKIN_TONE_HEX,
   SKIN_TONE_LABELS,
   SKIN_TONES,
-  type ChildAvatar as Avatar,
 } from '../domains/child-avatar'
+import type { ChildAvatar as Avatar } from '../domains/child-avatar'
 
 type AvatarPickerProps = {
   name: string
@@ -141,5 +141,3 @@ function Swatch({
     />
   )
 }
-
-

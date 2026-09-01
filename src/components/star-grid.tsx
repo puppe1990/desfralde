@@ -48,7 +48,9 @@ function StarRow({
     <>
       <div className="font-display text-sm capitalize">{kind}</div>
       {dates.map((date) => {
-        const on = marks.some((mark) => mark.date === date && mark.kind === kind)
+        const on = marks.some(
+          (mark) => mark.date === date && mark.kind === kind,
+        )
         return (
           <button
             key={`${kind}-${date}`}

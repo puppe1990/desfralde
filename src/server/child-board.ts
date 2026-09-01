@@ -5,17 +5,11 @@ import type { ChildAvatar } from '../domains/child-avatar'
 import { normalizeChildAvatar } from '../domains/child-avatar'
 import { normalizeChildName } from '../domains/child-name'
 import type { StarKind } from '../domains/star-chart'
-import { readSessionUserId } from './session'
-
-async function requireUserId() {
-  const userId = await readSessionUserId()
-  if (!userId) throw new Error('Faça login para continuar')
-  return userId
-}
+import { requireSignedInUserId } from './require-signed-in-user'
 
 export const listChildrenFn = createServerFn({ method: 'GET' }).handler(
   async () => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     const family = await getDesfraldeStore().getFamily(userId)
     return family.children
   },
@@ -27,21 +21,21 @@ export const createChildFn = createServerFn({ method: 'POST' })
     avatar: data.avatar ? normalizeChildAvatar(data.avatar) : undefined,
   }))
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     return getDesfraldeStore().addChildToFamily(userId, data.name, data.avatar)
   })
 
 export const getChildBoardFn = createServerFn({ method: 'GET' })
   .validator((data: { childId: string }) => data)
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     return getDesfraldeStore().getFamilyChildBoard(userId, data.childId)
   })
 
 export const listStarsFn = createServerFn({ method: 'GET' })
   .validator((data: { childId: string }) => data)
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     await getDesfraldeStore().getFamilyChildBoard(userId, data.childId)
     return getDesfraldeStore().listStars(data.childId)
   })
@@ -49,7 +43,7 @@ export const listStarsFn = createServerFn({ method: 'GET' })
 export const toggleStarFn = createServerFn({ method: 'POST' })
   .validator((data: { childId: string; date: string; kind: StarKind }) => data)
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     await getDesfraldeStore().getFamilyChildBoard(userId, data.childId)
     return getDesfraldeStore().toggleStar(data.childId, data.date, data.kind)
   })
@@ -57,21 +51,21 @@ export const toggleStarFn = createServerFn({ method: 'POST' })
 export const listPottyEventsFn = createServerFn({ method: 'GET' })
   .validator((data: { childId: string }) => data)
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     return getDesfraldeStore().listPottyEvents(userId, data.childId)
   })
 
 export const logPottyEventFn = createServerFn({ method: 'POST' })
   .validator((data: { childId: string; kind: string }) => data)
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     return getDesfraldeStore().logPottyEvent(userId, data.childId, data.kind)
   })
 
 export const deletePottyEventFn = createServerFn({ method: 'POST' })
   .validator((data: { childId: string; eventId: string }) => data)
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     await getDesfraldeStore().deletePottyEvent(
       userId,
       data.childId,
@@ -86,7 +80,7 @@ export const updateChildAvatarFn = createServerFn({ method: 'POST' })
     avatar: normalizeChildAvatar(data.avatar),
   }))
   .handler(async ({ data }) => {
-    const userId = await requireUserId()
+    const userId = await requireSignedInUserId()
     return getDesfraldeStore().updateChildAvatar(
       userId,
       data.childId,

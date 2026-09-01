@@ -2,12 +2,16 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { PecsCard } from '../components/pecs-card'
-import { nextRoutineIndex, previousRoutineIndex } from '../domains/routine-cursor'
+import {
+  nextRoutineIndex,
+  previousRoutineIndex,
+} from '../domains/routine-cursor'
 import { speakPortuguese } from '../lib/speak-portuguese'
 import { getChildBoardFn } from '../server/child-board'
 
 export const Route = createFileRoute('/criancas/$childId/passos')({
-  loader: ({ params }) => getChildBoardFn({ data: { childId: params.childId } }),
+  loader: ({ params }) =>
+    getChildBoardFn({ data: { childId: params.childId } }),
   component: PassosPage,
 })
 
@@ -15,7 +19,7 @@ function PassosPage() {
   const board = Route.useLoaderData()
   const steps = board.rotina
   const [index, setIndex] = useState(0)
-  const current = steps[index]
+  const current = steps.at(index)
 
   if (!current) {
     return <p className="p-8">Rotina vazia.</p>
@@ -57,7 +61,7 @@ function PassosPage() {
           onClick={() => {
             const next = nextRoutineIndex(index, steps.length)
             setIndex(next)
-            const step = steps[next]
+            const step = steps.at(next)
             if (step) speakPortuguese(step.speak)
           }}
           className="min-h-14 min-w-36 rounded-2xl bg-[#2a2118] font-bold text-[#fff8ec]"

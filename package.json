@@ -10,11 +10,12 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint",
+    "lint": "eslint . --max-warnings=0",
     "format": "prettier --write . && eslint --fix",
     "check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "ci": "npm run check && npm run lint && npm test"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

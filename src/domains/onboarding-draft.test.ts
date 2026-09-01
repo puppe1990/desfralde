@@ -23,7 +23,10 @@ describe('validateOnboardingDraft', () => {
 
   it('normalizes names, avatars and optional therapists', () => {
     const draft = validateOnboardingDraft({
-      parents: [{ name: '  Maria ', role: 'mae' }, { name: 'João', role: 'pai' }],
+      parents: [
+        { name: '  Maria ', role: 'mae' },
+        { name: 'João', role: 'pai' },
+      ],
       children: [
         {
           name: ' Ana ',

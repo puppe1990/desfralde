@@ -48,17 +48,17 @@ describe('normalizeChildAvatar', () => {
   })
 
   it('rejects unknown avatar options', () => {
-    expect(() =>
-      normalizeChildAvatar({ gender: 'alien' }),
-    ).toThrow('Gênero do avatar inválido')
-    expect(() =>
-      normalizeChildAvatar({ skinTone: 'blue' }),
-    ).toThrow('Tom de pele inválido')
-    expect(() =>
-      normalizeChildAvatar({ hairType: 'mohawk' }),
-    ).toThrow('Tipo de cabelo inválido')
-    expect(() =>
-      normalizeChildAvatar({ hairColor: 'green' }),
-    ).toThrow('Cor de cabelo inválida')
+    expect(() => normalizeChildAvatar({ gender: 'alien' })).toThrow(
+      'Gênero do avatar inválido',
+    )
+    expect(() => normalizeChildAvatar({ skinTone: 'blue' })).toThrow(
+      'Tom de pele inválido',
+    )
+    expect(() => normalizeChildAvatar({ hairType: 'mohawk' })).toThrow(
+      'Tipo de cabelo inválido',
+    )
+    expect(() => normalizeChildAvatar({ hairColor: 'green' })).toThrow(
+      'Cor de cabelo inválida',
+    )
   })
 })

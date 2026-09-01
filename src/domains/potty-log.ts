@@ -25,7 +25,7 @@ export function isPottyKind(value: string): value is PottyKind {
 
 export function parsePottyKind(value: string): PottyKind {
   if (!isPottyKind(value)) {
-    throw new Error('Anota só xixi ou cocô')
+    throw new Error(`Anota só xixi ou cocô: recebido ${JSON.stringify(value)}`)
   }
   return value
 }
@@ -59,7 +59,9 @@ export function groupPottyEventsByDay(
   events: Array<PottyEvent>,
 ): Array<PottyDay> {
   const byDay = new Map<string, Array<PottyEvent>>()
-  const ordered = [...events].sort((left, right) => left.occurredAt - right.occurredAt)
+  const ordered = [...events].sort(
+    (left, right) => left.occurredAt - right.occurredAt,
+  )
   for (const event of ordered) {
     const date = pottyDayKey(event.occurredAt)
     const bucket = byDay.get(date) ?? []

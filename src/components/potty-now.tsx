@@ -3,9 +3,8 @@ import {
   eventsOnDay,
   formatPottyClock,
   pottyDayKey,
-  type PottyEvent,
-  type PottyKind,
 } from '../domains/potty-log'
+import type { PottyEvent, PottyKind } from '../domains/potty-log'
 import { speakPortuguese } from '../lib/speak-portuguese'
 
 type PottyNowProps = {

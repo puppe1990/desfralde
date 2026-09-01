@@ -4,7 +4,8 @@ import { AvatarPicker } from '../components/avatar-picker'
 import { getChildBoardFn, updateChildAvatarFn } from '../server/child-board'
 
 export const Route = createFileRoute('/criancas/$childId/avatar')({
-  loader: ({ params }) => getChildBoardFn({ data: { childId: params.childId } }),
+  loader: ({ params }) =>
+    getChildBoardFn({ data: { childId: params.childId } }),
   component: AvatarPage,
 })
 

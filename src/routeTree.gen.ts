@@ -17,6 +17,7 @@ import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as CriancasChildIdRouteImport } from './routes/criancas.$childId'
 import { Route as CriancasChildIdIndexRouteImport } from './routes/criancas.$childId.index'
 import { Route as CriancasChildIdAvatarRouteImport } from './routes/criancas.$childId.avatar'
+import { Route as CriancasChildIdConfiguracaoRouteImport } from './routes/criancas.$childId.configuracao'
 import { Route as CriancasChildIdDiarioRouteImport } from './routes/criancas.$childId.diario'
 import { Route as CriancasChildIdEstrelasRouteImport } from './routes/criancas.$childId.estrelas'
 import { Route as CriancasChildIdImprimirRouteImport } from './routes/criancas.$childId.imprimir'
@@ -62,6 +63,12 @@ const CriancasChildIdAvatarRoute = CriancasChildIdAvatarRouteImport.update({
   path: '/avatar',
   getParentRoute: () => CriancasChildIdRoute,
 } as any)
+const CriancasChildIdConfiguracaoRoute =
+  CriancasChildIdConfiguracaoRouteImport.update({
+    id: '/configuracao',
+    path: '/configuracao',
+    getParentRoute: () => CriancasChildIdRoute,
+  } as any)
 const CriancasChildIdDiarioRoute = CriancasChildIdDiarioRouteImport.update({
   id: '/diario',
   path: '/diario',
@@ -91,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/criancas/$childId': typeof CriancasChildIdRouteWithChildren
   '/criancas/$childId/avatar': typeof CriancasChildIdAvatarRoute
+  '/criancas/$childId/configuracao': typeof CriancasChildIdConfiguracaoRoute
   '/criancas/$childId/diario': typeof CriancasChildIdDiarioRoute
   '/criancas/$childId/estrelas': typeof CriancasChildIdEstrelasRoute
   '/criancas/$childId/imprimir': typeof CriancasChildIdImprimirRoute
@@ -104,6 +112,7 @@ export interface FileRoutesByTo {
   '/configuracao': typeof ConfiguracaoRoute
   '/entrar': typeof EntrarRoute
   '/criancas/$childId/avatar': typeof CriancasChildIdAvatarRoute
+  '/criancas/$childId/configuracao': typeof CriancasChildIdConfiguracaoRoute
   '/criancas/$childId/diario': typeof CriancasChildIdDiarioRoute
   '/criancas/$childId/estrelas': typeof CriancasChildIdEstrelasRoute
   '/criancas/$childId/imprimir': typeof CriancasChildIdImprimirRoute
@@ -119,6 +128,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/criancas/$childId': typeof CriancasChildIdRouteWithChildren
   '/criancas/$childId/avatar': typeof CriancasChildIdAvatarRoute
+  '/criancas/$childId/configuracao': typeof CriancasChildIdConfiguracaoRoute
   '/criancas/$childId/diario': typeof CriancasChildIdDiarioRoute
   '/criancas/$childId/estrelas': typeof CriancasChildIdEstrelasRoute
   '/criancas/$childId/imprimir': typeof CriancasChildIdImprimirRoute
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/criancas/$childId'
     | '/criancas/$childId/avatar'
+    | '/criancas/$childId/configuracao'
     | '/criancas/$childId/diario'
     | '/criancas/$childId/estrelas'
     | '/criancas/$childId/imprimir'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/configuracao'
     | '/entrar'
     | '/criancas/$childId/avatar'
+    | '/criancas/$childId/configuracao'
     | '/criancas/$childId/diario'
     | '/criancas/$childId/estrelas'
     | '/criancas/$childId/imprimir'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/criancas/$childId'
     | '/criancas/$childId/avatar'
+    | '/criancas/$childId/configuracao'
     | '/criancas/$childId/diario'
     | '/criancas/$childId/estrelas'
     | '/criancas/$childId/imprimir'
@@ -236,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CriancasChildIdAvatarRouteImport
       parentRoute: typeof CriancasChildIdRoute
     }
+    '/criancas/$childId/configuracao': {
+      id: '/criancas/$childId/configuracao'
+      path: '/configuracao'
+      fullPath: '/criancas/$childId/configuracao'
+      preLoaderRoute: typeof CriancasChildIdConfiguracaoRouteImport
+      parentRoute: typeof CriancasChildIdRoute
+    }
     '/criancas/$childId/diario': {
       id: '/criancas/$childId/diario'
       path: '/diario'
@@ -269,6 +289,7 @@ declare module '@tanstack/react-router' {
 
 interface CriancasChildIdRouteChildren {
   CriancasChildIdAvatarRoute: typeof CriancasChildIdAvatarRoute
+  CriancasChildIdConfiguracaoRoute: typeof CriancasChildIdConfiguracaoRoute
   CriancasChildIdDiarioRoute: typeof CriancasChildIdDiarioRoute
   CriancasChildIdEstrelasRoute: typeof CriancasChildIdEstrelasRoute
   CriancasChildIdImprimirRoute: typeof CriancasChildIdImprimirRoute
@@ -278,6 +299,7 @@ interface CriancasChildIdRouteChildren {
 
 const CriancasChildIdRouteChildren: CriancasChildIdRouteChildren = {
   CriancasChildIdAvatarRoute: CriancasChildIdAvatarRoute,
+  CriancasChildIdConfiguracaoRoute: CriancasChildIdConfiguracaoRoute,
   CriancasChildIdDiarioRoute: CriancasChildIdDiarioRoute,
   CriancasChildIdEstrelasRoute: CriancasChildIdEstrelasRoute,
   CriancasChildIdImprimirRoute: CriancasChildIdImprimirRoute,

@@ -13,7 +13,9 @@ const EMAIL = process.env.SEED_EMAIL
 const PASSWORD = process.env.SEED_PASSWORD
 
 if (!EMAIL || !PASSWORD) {
-  throw new Error('Defina SEED_EMAIL e SEED_PASSWORD no ambiente para rodar o seed.')
+  throw new Error(
+    'Defina SEED_EMAIL e SEED_PASSWORD no ambiente para rodar o seed.',
+  )
 }
 
 async function main() {

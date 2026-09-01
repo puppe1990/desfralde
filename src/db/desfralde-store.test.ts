@@ -1,12 +1,6 @@
-import { createClient } from '@libsql/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createDesfraldeStore } from './desfralde-store'
-
-function memoryStore() {
-  const client = createClient({ url: ':memory:' })
-  return { client, store: createDesfraldeStore(client) }
-}
+import { openMemoryDesfraldeStore } from './memory-desfralde-store'
 
 describe('createDesfraldeStore', () => {
   const opened: Array<{ close: () => void }> = []
@@ -17,7 +11,7 @@ describe('createDesfraldeStore', () => {
   })
 
   it('creates a child, seeds the default PECS pack, and lists newest first', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const ana = await store.createChild('  Ana  ')
@@ -41,7 +35,7 @@ describe('createDesfraldeStore', () => {
   })
 
   it('toggles stars per child without mixing profiles', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const ana = await store.createChild('Ana')
@@ -62,7 +56,7 @@ describe('createDesfraldeStore', () => {
   })
 
   it('fails when the child does not exist', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     await expect(store.getChildBoard('missing')).rejects.toThrow(

@@ -105,8 +105,10 @@ function pick<T extends string>(
   allowed: ReadonlyArray<T>,
   error: string,
 ): T {
-  if (value == null) return allowed[0] as T
-  if (!allowed.includes(value as T)) throw new Error(error)
+  if (value == null) return allowed[0]
+  if (!allowed.includes(value as T)) {
+    throw new Error(`${error}: ${JSON.stringify(value)}`)
+  }
   return value as T
 }
 
@@ -115,7 +117,11 @@ export function normalizeChildAvatar(
 ): ChildAvatar {
   const defaults = defaultChildAvatar()
   return {
-    gender: pick(input.gender ?? defaults.gender, GENDERS, 'Gênero do avatar inválido'),
+    gender: pick(
+      input.gender ?? defaults.gender,
+      GENDERS,
+      'Gênero do avatar inválido',
+    ),
     skinTone: pick(
       input.skinTone ?? defaults.skinTone,
       SKIN_TONES,

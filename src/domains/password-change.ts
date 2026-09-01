@@ -5,9 +5,14 @@ export type PasswordChange = {
   newPassword: string
 }
 
-export function assertPasswordLength(password: string, label = 'A senha'): string {
+export function assertPasswordLength(
+  password: string,
+  label = 'A senha',
+): string {
   if (password.length < MIN_PASSWORD_LENGTH) {
-    throw new Error(`${label} precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`)
+    throw new Error(
+      `${label} precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`,
+    )
   }
   return password
 }

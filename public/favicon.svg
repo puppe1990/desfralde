@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Desfralde">
+  <rect width="32" height="32" fill="#e0a03a"/>
+  <rect x="2" y="2" width="28" height="28" rx="7" fill="#fff8ec" stroke="#2a2118" stroke-width="2"/>
+  <rect x="5" y="5" width="22" height="22" rx="5" fill="none" stroke="#b87a1c" stroke-width="1.5"/>
+  <ellipse cx="16" cy="17.2" rx="7.2" ry="6.2" fill="#bad6d0" stroke="#2a2118" stroke-width="1.6"/>
+  <ellipse cx="16" cy="18.2" rx="3.1" ry="2.4" fill="#fff8ec" stroke="#2a2118" stroke-width="1.2"/>
+</svg>

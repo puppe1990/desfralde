@@ -1,7 +1,5 @@
-import {
-  childAvatarSrc,
-  type ChildAvatar as Avatar,
-} from '../domains/child-avatar'
+import { childAvatarSrc } from '../domains/child-avatar'
+import type { ChildAvatar as Avatar } from '../domains/child-avatar'
 
 type ChildAvatarProps = {
   name: string

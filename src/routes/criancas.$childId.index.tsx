@@ -25,9 +25,7 @@ function ChildBoardPage() {
   const { board, events } = Route.useLoaderData()
   const router = useRouter()
 
-  async function refreshAfter(
-    action: () => Promise<unknown>,
-  ) {
+  async function refreshAfter(action: () => Promise<unknown>) {
     await action()
     await router.invalidate()
   }
