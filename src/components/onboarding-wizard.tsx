@@ -115,7 +115,7 @@ export function OnboardingWizard({
           ))}
           <button
             type="button"
-            className="justify-self-start font-bold text-[#9a3d28]"
+            className="rounded-2xl border-2 border-dashed border-[#b87a1c] px-4 py-3 text-left font-display text-xl font-bold text-[#8a5a10]"
             onClick={() =>
               setKids(
                 addAdultRow(kids, { name: '', avatar: defaultChildAvatar() }),

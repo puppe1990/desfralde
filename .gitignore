@@ -21,3 +21,9 @@ todos.json
 
 # Local Netlify folder
 .netlify
+
+# Recolor debug overlays
+public/pecs/debug
+
+# Playwright CLI session artifacts
+.playwright-cli

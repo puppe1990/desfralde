@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import type { CSSProperties, PointerEvent } from 'react'
 
+import { pecsCardImageSrc } from '../domains/pecs-card'
+import type { CardTone } from '../domains/pecs-card'
+import type { ChildAvatar } from '../domains/child-avatar'
 import { speakPortuguese } from '../lib/speak-portuguese'
 import { tapPointPercent } from '../lib/tap-point'
-import type { CardTone } from '../domains/pecs-card'
 
 const toneClass: Record<CardTone, string> = {
   terra: 'border-[#9a3d28] bg-[#fde7df] text-[#9a3d28]',
@@ -23,11 +25,13 @@ function restartSpeaking(card: HTMLButtonElement) {
 }
 
 type PecsCardProps = {
+  slug?: string
   label: string
   speak: string
   imageSrc: string
   tone: CardTone
   number?: number
+  avatar?: ChildAvatar
 }
 
 function useCardPress() {
@@ -48,13 +52,18 @@ function useCardPress() {
 }
 
 export function PecsCard({
+  slug,
   label,
   speak,
   imageSrc,
   tone,
   number,
+  avatar,
 }: PecsCardProps) {
   const press = useCardPress()
+  const tintedSrc = pecsCardImageSrc(slug ?? '', imageSrc, avatar)
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null)
+  const src = brokenSrc === tintedSrc ? imageSrc : tintedSrc
 
   return (
     <button
@@ -78,7 +87,12 @@ export function PecsCard({
             {number}
           </span>
         ) : null}
-        <img src={imageSrc} alt={label} className="size-full object-cover" />
+        <img
+          src={src}
+          alt={label}
+          className="size-full object-cover"
+          onError={() => setBrokenSrc(tintedSrc)}
+        />
       </span>
       <span className="block border-t-3 border-[#2a2118] px-2 py-2.5 text-center font-display text-xl font-bold">
         {label}

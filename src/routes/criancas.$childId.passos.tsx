@@ -45,7 +45,7 @@ function PassosPage() {
         ))}
       </div>
       <div key={current.id} className="pecs-step w-full max-w-sm">
-        <PecsCard {...current} number={index + 1} />
+        <PecsCard {...current} number={index + 1} avatar={board.child.avatar} />
       </div>
       <div className="flex gap-3">
         <button

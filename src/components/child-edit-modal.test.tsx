@@ -46,4 +46,35 @@ describe('ChildEditModal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Apagar de vez' }))
     expect(onDelete).toHaveBeenCalled()
   })
+
+  it('creates a new child with name and avatar', () => {
+    const onSave = vi.fn()
+    render(<ChildEditModal onClose={vi.fn()} onSave={onSave} />)
+
+    expect(screen.getByRole('dialog', { name: 'Nova criança' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Apagar criança' })).toBeNull()
+    fireEvent.change(screen.getByLabelText('Nome'), {
+      target: { value: 'Luna' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Menina' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Criar quadro' }))
+    expect(onSave).toHaveBeenCalledWith({
+      name: 'Luna',
+      avatar: { ...defaultChildAvatar(), gender: 'menina' },
+    })
+  })
+
+  it('shows the save error inside the create dialog', () => {
+    render(
+      <ChildEditModal
+        error="Nome da criança é obrigatório"
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole('dialog', { name: 'Nova criança' }).textContent,
+    ).toContain('Nome da criança é obrigatório')
+  })
 })

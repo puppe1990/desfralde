@@ -7,6 +7,52 @@ import { PecsCard } from './pecs-card'
 afterEach(cleanup)
 
 describe('PecsCard', () => {
+  it('uses the tinted illustration that matches the selected avatar', () => {
+    render(
+      <PecsCard
+        slug="xixi"
+        label="Xixi"
+        speak="Xixi"
+        imageSrc="/pecs/xixi-pedido.jpg"
+        tone="terra"
+        avatar={{
+          gender: 'menina',
+          skinTone: 'espresso',
+          hairType: 'puff',
+          hairColor: 'black',
+        }}
+      />,
+    )
+
+    expect(screen.getByAltText('Xixi')).toHaveProperty(
+      'src',
+      expect.stringContaining('/pecs/tinted/xixi/menina-espresso-black.jpg'),
+    )
+  })
+
+  it('keeps object cards on the generic illustration', () => {
+    render(
+      <PecsCard
+        slug="banheiro"
+        label="Banheiro"
+        speak="Banheiro"
+        imageSrc="/pecs/banheiro.jpg"
+        tone="terra"
+        avatar={{
+          gender: 'menina',
+          skinTone: 'espresso',
+          hairType: 'puff',
+          hairColor: 'black',
+        }}
+      />,
+    )
+
+    expect(screen.getByAltText('Banheiro')).toHaveProperty(
+      'src',
+      expect.stringContaining('/pecs/banheiro.jpg'),
+    )
+  })
+
   it('shows the label and image for a request card', () => {
     render(
       <PecsCard

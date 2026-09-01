@@ -2,27 +2,31 @@ import { useEffect, useId, useState } from 'react'
 
 import { AvatarPicker } from './avatar-picker'
 import { pecsTextFieldClass } from './settings-form-chrome'
+import { defaultChildAvatar } from '../domains/child-avatar'
 import type { ChildAvatar } from '../domains/child-avatar'
 import type { ChildRecord } from '../db/desfralde-records'
 
 type ChildEditModalProps = {
-  child: ChildRecord
-  childCount: number
+  child?: ChildRecord
+  childCount?: number
+  error?: string | null
   onClose: () => void
   onSave: (patch: { name: string; avatar: ChildAvatar }) => void
-  onDelete: () => void
+  onDelete?: () => void
 }
 
 export function ChildEditModal({
   child,
-  childCount,
+  childCount = 0,
+  error,
   onClose,
   onSave,
   onDelete,
 }: ChildEditModalProps) {
   const titleId = useId()
-  const [name, setName] = useState(child.name)
-  const [avatar, setAvatar] = useState(child.avatar)
+  const creating = child == null
+  const [name, setName] = useState(child?.name ?? '')
+  const [avatar, setAvatar] = useState(child?.avatar ?? defaultChildAvatar())
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export function ChildEditModal({
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border-4 border-[#2a2118] bg-[#fff8ec] p-5 shadow-[0_18px_40px_rgba(42,33,24,0.18)]"
         onClick={(event) => event.stopPropagation()}
       >
-        {confirmingDelete ? (
+        {confirmingDelete && child && onDelete ? (
           <DeleteChildConfirm
             titleId={titleId}
             name={child.name}
@@ -55,9 +59,11 @@ export function ChildEditModal({
         ) : (
           <EditChildForm
             titleId={titleId}
+            creating={creating}
             name={name}
             avatar={avatar}
-            canDelete={childCount > 1}
+            error={error}
+            canDelete={!creating && childCount > 1 && onDelete != null}
             onNameChange={setName}
             onAvatarChange={setAvatar}
             onClose={onClose}
@@ -72,8 +78,10 @@ export function ChildEditModal({
 
 function EditChildForm({
   titleId,
+  creating,
   name,
   avatar,
+  error,
   canDelete,
   onNameChange,
   onAvatarChange,
@@ -82,8 +90,10 @@ function EditChildForm({
   onAskDelete,
 }: {
   titleId: string
+  creating: boolean
   name: string
   avatar: ChildAvatar
+  error?: string | null
   canDelete: boolean
   onNameChange: (name: string) => void
   onAvatarChange: (avatar: ChildAvatar) => void
@@ -100,7 +110,7 @@ function EditChildForm({
       }}
     >
       <h2 id={titleId} className="font-serif text-3xl">
-        Editar {name || 'criança'}
+        {creating ? 'Nova criança' : `Editar ${name || 'criança'}`}
       </h2>
       <label className="grid gap-1 text-sm font-bold">
         Nome
@@ -112,12 +122,13 @@ function EditChildForm({
         />
       </label>
       <AvatarPicker name={name} value={avatar} onChange={onAvatarChange} />
+      {error ? <p className="text-[#9a3d28]">{error}</p> : null}
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="submit"
           className="rounded-2xl bg-[#c45c3e] px-5 py-3 font-bold text-white"
         >
-          Salvar
+          {creating ? 'Criar quadro' : 'Salvar'}
         </button>
         <button
           type="button"
@@ -126,7 +137,7 @@ function EditChildForm({
         >
           Cancelar
         </button>
-        {canDelete ? (
+        {creating ? null : canDelete ? (
           <button
             type="button"
             onClick={onAskDelete}
