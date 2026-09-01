@@ -26,7 +26,9 @@ describe('PecsCard', () => {
 
     expect(screen.getByAltText('Xixi')).toHaveProperty(
       'src',
-      expect.stringContaining('/pecs/tinted/xixi/menina-espresso-black.jpg'),
+      expect.stringContaining(
+        '/pecs/tinted/xixi/menina-espresso-puff-black.jpg',
+      ),
     )
   })
 

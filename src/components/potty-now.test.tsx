@@ -25,11 +25,15 @@ describe('PottyNow', () => {
     const images = document.querySelectorAll('img')
     expect(images[0]).toHaveProperty(
       'src',
-      expect.stringContaining('/pecs/tinted/xixi/menina-espresso-black.jpg'),
+      expect.stringContaining(
+        '/pecs/tinted/xixi/menina-espresso-puff-black.jpg',
+      ),
     )
     expect(images[1]).toHaveProperty(
       'src',
-      expect.stringContaining('/pecs/tinted/coco/menina-espresso-black.jpg'),
+      expect.stringContaining(
+        '/pecs/tinted/coco/menina-espresso-puff-black.jpg',
+      ),
     )
   })
 

@@ -12,7 +12,13 @@ describe('pecsCardImageSrc', () => {
         hairType: 'puff',
         hairColor: 'black',
       }),
-    ).toBe('/pecs/tinted/xixi/menina-espresso-black.jpg')
+    ).toBe('/pecs/tinted/xixi/menina-espresso-puff-black.jpg')
+  })
+
+  it('uses the wavy silhouette for hair that is not black power', () => {
+    expect(
+      pecsCardImageSrc('xixi', '/pecs/xixi-pedido.jpg', defaultChildAvatar()),
+    ).toBe('/pecs/tinted/xixi/menino-golden-wavy-brown.jpg')
   })
 
   it('keeps object cards on the generic illustration', () => {

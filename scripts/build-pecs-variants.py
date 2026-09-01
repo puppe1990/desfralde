@@ -41,6 +41,7 @@ SHIRT = {
 }
 
 GENDERS = ("menino", "menina", "outro")
+HAIR_TYPES = ("wavy", "puff")
 
 CHARACTER_CARDS = {
     "xixi": "xixi-pedido.jpg",
@@ -57,10 +58,10 @@ CHARACTER_CARDS = {
 }
 
 PREVIEWS = (
-    ("menino", "golden", "brown"),
-    ("menina", "espresso", "black"),
-    ("menina", "ivory", "blonde"),
-    ("outro", "bronze", "gray"),
+    ("menino", "golden", "wavy", "brown"),
+    ("menina", "espresso", "puff", "black"),
+    ("menina", "ivory", "wavy", "blonde"),
+    ("outro", "bronze", "puff", "gray"),
 )
 
 
@@ -96,6 +97,10 @@ def morph(mask: np.ndarray, radius: int, maximum: bool) -> np.ndarray:
 
 def dilate(mask: np.ndarray, radius: int) -> np.ndarray:
     return morph(mask, radius, True)
+
+
+def erode(mask: np.ndarray, radius: int) -> np.ndarray:
+    return morph(mask, radius, False)
 
 
 def border_connected(mask: np.ndarray) -> np.ndarray:
@@ -265,8 +270,20 @@ def masks(rgb: np.ndarray, slug: str) -> dict[str, np.ndarray]:
         shirt = np.zeros_like(figure)
 
     if not shirt.any():
-        coral = torso & (h < 0.075) & (s > 0.48) & (v > 0.38) & (v < 0.88) & ~shorts
-        garment = dilate(coral, 6) & torso & (h < 0.085) & (s > 0.42) & ~shorts
+        coral = torso & (h < 0.085) & (s > 0.40) & (v > 0.38) & (v < 0.90) & ~shorts
+        coral_area = (
+            figure
+            & (h < 0.11)
+            & (s > 0.30)
+            & (v > 0.35)
+            & (v < 0.92)
+            & ~shorts
+            & ~floor
+        )
+        ys, xs = np.where(coral)
+        seeds = [(int(xs[i]), int(ys[i])) for i in range(0, len(xs), 24)]
+        garment = flood(coral_area, seeds) if seeds else np.zeros_like(figure)
+        garment = dilate(garment, 4) & coral_area
     else:
         garment = shirt
 
@@ -327,12 +344,17 @@ def masks(rgb: np.ndarray, slug: str) -> dict[str, np.ndarray]:
         & ~adult
         & ~floor
         & ~sage_wall
+        & ~cream
         & (h < 0.12)
-        & (s > 0.20)
+        & (s > 0.24)
         & (s < 0.72)
         & (v > 0.30)
-        & (v < 0.92)
+        & (v < 0.90)
     )
+    if shorts.any():
+        lower = shorts | socks | shoes
+        gap = erode(dilate(lower, 14), 10) & ~lower & figure & (s < 0.32) & (v > 0.62)
+        skin = skin & ~gap
     return {"skin": skin, "hair": hair, "shirt": shirt, "eyes": eyes, "bg": bg}
 
 
@@ -354,8 +376,13 @@ def apply_variant(
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
 
 
-def source_for(slug: str, gender: str) -> Path:
-    if gender == "menina":
+def source_for(slug: str, gender: str, hair_type: str = "wavy") -> Path:
+    source_gender = "menino" if gender == "outro" else gender
+    if hair_type == "puff":
+        puff = BASES / f"{source_gender}-puff-{slug}.jpg"
+        if puff.exists():
+            return puff
+    if source_gender == "menina":
         girl = BASES / f"menina-{slug}.jpg"
         if girl.exists():
             return girl
@@ -393,17 +420,18 @@ def slugs_from_args(selected: str | None) -> list[str]:
 def build_all(selected: str | None = None) -> int:
     count = 0
     for slug in slugs_from_args(selected):
+        dest_dir = OUT / slug
+        dest_dir.mkdir(parents=True, exist_ok=True)
         for gender in GENDERS:
-            rgb = load_rgb(source_for(slug, gender))
-            parts = masks(rgb, slug)
-            dest_dir = OUT / slug
-            dest_dir.mkdir(parents=True, exist_ok=True)
-            for skin in SKIN:
-                for hair in HAIR:
-                    dest = dest_dir / f"{gender}-{skin}-{hair}.jpg"
-                    image = apply_variant(rgb, parts, skin, hair, gender)
-                    image.save(dest, quality=84, optimize=True)
-                    count += 1
+            for hair_type in HAIR_TYPES:
+                rgb = load_rgb(source_for(slug, gender, hair_type))
+                parts = masks(rgb, slug)
+                for skin in SKIN:
+                    for hair in HAIR:
+                        dest = dest_dir / f"{gender}-{skin}-{hair_type}-{hair}.jpg"
+                        image = apply_variant(rgb, parts, skin, hair, gender)
+                        image.save(dest, quality=84, optimize=True)
+                        count += 1
     return count
 
 
@@ -412,14 +440,14 @@ def build_preview(selected: str | None = None) -> int:
     for slug in slugs_from_args(selected):
         dest_dir = OUT / slug
         dest_dir.mkdir(parents=True, exist_ok=True)
-        cache: dict[tuple[str, str], tuple[np.ndarray, dict[str, np.ndarray]]] = {}
-        for gender, skin, hair in PREVIEWS:
-            key = (slug, gender)
+        cache: dict[tuple[str, str, str], tuple[np.ndarray, dict[str, np.ndarray]]] = {}
+        for gender, skin, hair_type, hair in PREVIEWS:
+            key = (slug, gender, hair_type)
             if key not in cache:
-                rgb = load_rgb(source_for(slug, gender))
+                rgb = load_rgb(source_for(slug, gender, hair_type))
                 cache[key] = (rgb, masks(rgb, slug))
             rgb, parts = cache[key]
-            dest = dest_dir / f"{gender}-{skin}-{hair}.jpg"
+            dest = dest_dir / f"{gender}-{skin}-{hair_type}-{hair}.jpg"
             apply_variant(rgb, parts, skin, hair, gender).save(
                 dest, quality=84, optimize=True
             )
@@ -431,7 +459,7 @@ def build_debug(selected: str | None = None) -> None:
     DEBUG.mkdir(parents=True, exist_ok=True)
     for slug in slugs_from_args(selected):
         for gender in ("menino", "menina"):
-            rgb = load_rgb(source_for(slug, gender))
+            rgb = load_rgb(source_for(slug, gender, "wavy"))
             parts = masks(rgb, slug)
             write_overlay(rgb, parts, DEBUG / f"mask-{gender}-{slug}.jpg")
 
