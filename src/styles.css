@@ -1,9 +1,9 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-serif: "Fraunces", serif;
-  --font-display: "Baloo 2", sans-serif;
-  --font-body: "Atkinson Hyperlegible", sans-serif;
+  --font-serif: 'Fraunces', serif;
+  --font-display: 'Baloo 2', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', sans-serif;
 }
 
 * {
@@ -19,8 +19,16 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(224, 160, 58, 0.18), transparent 55%),
-    radial-gradient(900px 500px at 110% 0%, rgba(79, 122, 102, 0.16), transparent 50%),
+    radial-gradient(
+      1200px 600px at 10% -10%,
+      rgba(224, 160, 58, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      900px 500px at 110% 0%,
+      rgba(79, 122, 102, 0.16),
+      transparent 50%
+    ),
     linear-gradient(180deg, #f7efe0 0%, #efe3c9 100%);
 }
 
@@ -34,6 +42,25 @@ body {
 
 .font-body {
   font-family: var(--font-body);
+}
+
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.landing-float {
+  animation: landing-float 4.5s ease-in-out infinite;
+}
+
+.landing-float-slow {
+  animation: landing-float 6s ease-in-out infinite;
+  animation-delay: -1.4s;
 }
 
 @media print {

@@ -1,12 +1,6 @@
-import { createClient } from '@libsql/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createDesfraldeStore } from './desfralde-store'
-
-function memoryStore() {
-  const client = createClient({ url: ':memory:' })
-  return { client, store: createDesfraldeStore(client) }
-}
+import { openMemoryDesfraldeStore } from './memory-desfralde-store'
 
 describe('family onboarding', () => {
   const opened: Array<{ close: () => void }> = []
@@ -17,7 +11,7 @@ describe('family onboarding', () => {
   })
 
   it('registers a caregiver and saves the family from the wizard', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const user = await store.registerCaregiver({
@@ -28,7 +22,10 @@ describe('family onboarding', () => {
     expect(user.email).toBe('maria@casa.com')
 
     const family = await store.completeOnboarding(user.id, {
-      parents: [{ name: 'Maria', role: 'mae' }, { name: 'João', role: 'pai' }],
+      parents: [
+        { name: 'Maria', role: 'mae' },
+        { name: 'João', role: 'pai' },
+      ],
       children: [
         {
           name: 'Ana',
@@ -57,12 +54,12 @@ describe('family onboarding', () => {
       hairColor: 'black',
     })
 
-    const board = await store.getChildBoard(family.children[0]!.id)
+    const board = await store.getChildBoard(family.children[0].id)
     expect(board.pedidos[0]?.label).toBe('Xixi')
   })
 
   it('does not let one family open another family child board', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const maria = await store.registerCaregiver({
@@ -88,12 +85,12 @@ describe('family onboarding', () => {
     })
 
     await expect(
-      store.getFamilyChildBoard(joana.id, familyA.children[0]!.id),
+      store.getFamilyChildBoard(joana.id, familyA.children[0].id),
     ).rejects.toThrow('Criança não encontrada')
   })
 
   it('rejects a duplicate email', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     await store.registerCaregiver({

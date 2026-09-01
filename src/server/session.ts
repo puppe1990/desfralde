@@ -12,7 +12,9 @@ function getSessionConfig() {
   const password =
     process.env.SESSION_SECRET ?? 'desfralde-dev-session-secret-key-32b'
   if (password.length < 32) {
-    throw new Error('SESSION_SECRET must be at least 32 characters')
+    throw new Error(
+      `SESSION_SECRET must be at least 32 characters (got ${password.length})`,
+    )
   }
   return {
     password,

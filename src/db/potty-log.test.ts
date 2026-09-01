@@ -1,12 +1,6 @@
-import { createClient } from '@libsql/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createDesfraldeStore } from './desfralde-store'
-
-function memoryStore() {
-  const client = createClient({ url: ':memory:' })
-  return { client, store: createDesfraldeStore(client) }
-}
+import { openMemoryDesfraldeStore } from './memory-desfralde-store'
 
 describe('potty diary and teacher invite', () => {
   const opened: Array<{ close: () => void }> = []
@@ -17,7 +11,7 @@ describe('potty diary and teacher invite', () => {
   })
 
   it('records several xixi and coco times for one child', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const maria = await store.registerCaregiver({
@@ -30,7 +24,7 @@ describe('potty diary and teacher invite', () => {
       children: [{ name: 'Ana' }],
       staff: [],
     })
-    const childId = family.children[0]!.id
+    const childId = family.children[0].id
 
     const first = await store.logPottyEvent(maria.id, childId, 'xixi')
     const second = await store.logPottyEvent(maria.id, childId, 'coco')
@@ -48,7 +42,7 @@ describe('potty diary and teacher invite', () => {
   })
 
   it('does not let another family read or write the diary', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const maria = await store.registerCaregiver({
@@ -73,12 +67,12 @@ describe('potty diary and teacher invite', () => {
     })
 
     await expect(
-      store.logPottyEvent(joana.id, familyA.children[0]!.id, 'xixi'),
+      store.logPottyEvent(joana.id, familyA.children[0].id, 'xixi'),
     ).rejects.toThrow('Criança não encontrada')
   })
 
   it('invites the teacher into the same house so she can log too', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const maria = await store.registerCaregiver({
@@ -110,9 +104,13 @@ describe('potty diary and teacher invite', () => {
       asTeacher.adults.find((adult) => adult.role === 'professora')?.name,
     ).toBe('Taize')
 
-    const event = await store.logPottyEvent(logged.id, family.children[0]!.id, 'xixi')
+    const event = await store.logPottyEvent(
+      logged.id,
+      family.children[0].id,
+      'xixi',
+    )
     expect(
-      (await store.listPottyEvents(maria.id, family.children[0]!.id)).map(
+      (await store.listPottyEvents(maria.id, family.children[0].id)).map(
         (item) => item.id,
       ),
     ).toEqual([event.id])

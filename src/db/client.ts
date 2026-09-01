@@ -3,9 +3,7 @@ import { createClient } from '@libsql/client'
 import { createDesfraldeStore } from './desfralde-store'
 import { resolveDatabaseUrl } from '../lib/database-url'
 
-export function createLibsqlClient(
-  env: NodeJS.ProcessEnv = process.env,
-) {
+export function createLibsqlClient(env: NodeJS.ProcessEnv = process.env) {
   const url = resolveDatabaseUrl({
     nodeEnv: env.NODE_ENV,
     databaseUrl: env.DATABASE_URL ?? env.TURSO_DATABASE_URL,

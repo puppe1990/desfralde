@@ -1,12 +1,6 @@
-import { createClient } from '@libsql/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createDesfraldeStore } from './desfralde-store'
-
-function memoryStore() {
-  const client = createClient({ url: ':memory:' })
-  return { client, store: createDesfraldeStore(client) }
-}
+import { openMemoryDesfraldeStore } from './memory-desfralde-store'
 
 describe('account settings', () => {
   const opened: Array<{ close: () => void }> = []
@@ -17,7 +11,7 @@ describe('account settings', () => {
   })
 
   it('lets the logged-in caregiver change the password', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const user = await store.registerCaregiver({
@@ -41,7 +35,7 @@ describe('account settings', () => {
   })
 
   it('rejects a wrong current password without changing the hash', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const user = await store.registerCaregiver({
@@ -64,7 +58,7 @@ describe('account settings', () => {
   })
 
   it('replaces the family therapist or creates one if missing', async () => {
-    const { client, store } = memoryStore()
+    const { client, store } = openMemoryDesfraldeStore()
     opened.push(client)
 
     const maria = await store.registerCaregiver({
@@ -86,14 +80,16 @@ describe('account settings', () => {
 
     const after = await store.getFamily(maria.id)
     expect(
-      after.adults.filter((adult) => adult.role === 'terapeuta').map((adult) => adult.name),
+      after.adults
+        .filter((adult) => adult.role === 'terapeuta')
+        .map((adult) => adult.name),
     ).toEqual(['Xereta'])
     expect(
       after.adults.find((adult) => adult.role === 'professora')?.name,
     ).toBe('Lúcia')
-    expect(after.adults.find((adult) => adult.id === family.adults[0]?.id)?.name).toBe(
-      'Maria',
-    )
+    expect(
+      after.adults.find((adult) => adult.id === family.adults[0]?.id)?.name,
+    ).toBe('Maria')
 
     const joana = await store.registerCaregiver({
       name: 'Joana',

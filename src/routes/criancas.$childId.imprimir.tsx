@@ -4,7 +4,8 @@ import { PecsCard } from '../components/pecs-card'
 import { getChildBoardFn } from '../server/child-board'
 
 export const Route = createFileRoute('/criancas/$childId/imprimir')({
-  loader: ({ params }) => getChildBoardFn({ data: { childId: params.childId } }),
+  loader: ({ params }) =>
+    getChildBoardFn({ data: { childId: params.childId } }),
   component: ImprimirPage,
 })
 
@@ -30,7 +31,9 @@ function ImprimirPage() {
         </button>
       </div>
 
-      <h3 className="font-display mb-3 text-2xl">Pedidos de {board.child.name}</h3>
+      <h3 className="font-display mb-3 text-2xl">
+        Pedidos de {board.child.name}
+      </h3>
       <div className="grid grid-cols-2 gap-4">
         {board.pedidos.map((card) => (
           <PecsCard key={card.id} {...card} />

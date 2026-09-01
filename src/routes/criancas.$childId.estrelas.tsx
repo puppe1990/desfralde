@@ -2,7 +2,11 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 
 import { StarGrid } from '../components/star-grid'
 import { weekStartingMonday } from '../domains/star-chart'
-import { getChildBoardFn, listStarsFn, toggleStarFn } from '../server/child-board'
+import {
+  getChildBoardFn,
+  listStarsFn,
+  toggleStarFn,
+} from '../server/child-board'
 
 export const Route = createFileRoute('/criancas/$childId/estrelas')({
   loader: async ({ params }) => {

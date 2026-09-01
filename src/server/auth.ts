@@ -35,7 +35,10 @@ export const loginFn = createServerFn({ method: 'POST' })
     password: data.password,
   }))
   .handler(async ({ data }) => {
-    const user = await getDesfraldeStore().authenticate(data.email, data.password)
+    const user = await getDesfraldeStore().authenticate(
+      data.email,
+      data.password,
+    )
     await writeSessionUserId(user.id)
     return user
   })

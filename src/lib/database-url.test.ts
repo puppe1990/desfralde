@@ -13,9 +13,7 @@ describe('resolveDatabaseUrl', () => {
   })
 
   it('falls back to a local libSQL file outside production', () => {
-    expect(resolveDatabaseUrl({ nodeEnv: 'development' })).toBe(
-      'file:local.db',
-    )
+    expect(resolveDatabaseUrl({ nodeEnv: 'development' })).toBe('file:local.db')
   })
 
   it('fails in production when DATABASE_URL is missing', () => {

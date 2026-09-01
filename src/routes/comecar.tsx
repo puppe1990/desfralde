@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 import { OnboardingWizard } from '../components/onboarding-wizard'
+import { UserChip } from '../components/user-chip'
 import { getCurrentUserFn } from '../server/auth'
 
 export const Route = createFileRoute('/comecar')({
@@ -15,5 +16,12 @@ export const Route = createFileRoute('/comecar')({
 
 function ComecarPage() {
   const user = Route.useLoaderData()
-  return <OnboardingWizard defaultParentName={user.name} />
+  return (
+    <div>
+      <div className="mx-auto flex max-w-3xl justify-end px-4 pt-6">
+        <UserChip name={user.name} />
+      </div>
+      <OnboardingWizard defaultParentName={user.name} />
+    </div>
+  )
 }

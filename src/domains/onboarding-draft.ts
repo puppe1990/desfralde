@@ -1,9 +1,6 @@
 import { normalizeChildName, normalizePersonName } from './child-name'
-import {
-  defaultChildAvatar,
-  normalizeChildAvatar,
-  type ChildAvatar,
-} from './child-avatar'
+import { defaultChildAvatar, normalizeChildAvatar } from './child-avatar'
+import type { ChildAvatar } from './child-avatar'
 
 export const PARENT_ROLES = ['mae', 'pai'] as const
 export const STAFF_ROLES = ['terapeuta', 'professora'] as const
@@ -46,14 +43,14 @@ export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
 
 function asParentRole(role: string): ParentRole {
   if (!(PARENT_ROLES as ReadonlyArray<string>).includes(role)) {
-    throw new Error('Papel do responsável inválido')
+    throw new Error(`Papel do responsável inválido: ${role}`)
   }
   return role as ParentRole
 }
 
 function asStaffRole(role: string): StaffRole {
   if (!(STAFF_ROLES as ReadonlyArray<string>).includes(role)) {
-    throw new Error('Papel da equipe inválido')
+    throw new Error(`Papel da equipe inválido: ${role}`)
   }
   return role as StaffRole
 }

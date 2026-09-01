@@ -2,13 +2,13 @@ import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { AvatarPicker } from './avatar-picker'
-import { defaultChildAvatar, type ChildAvatar } from '../domains/child-avatar'
+import { defaultChildAvatar } from '../domains/child-avatar'
+import type { ChildAvatar } from '../domains/child-avatar'
 import {
   PARENT_ROLE_LABELS,
   STAFF_ROLE_LABELS,
-  type ParentRole,
-  type StaffRole,
 } from '../domains/onboarding-draft'
+import type { ParentRole, StaffRole } from '../domains/onboarding-draft'
 import { completeOnboardingFn } from '../server/onboarding'
 
 type ParentDraft = { name: string; role: ParentRole }
@@ -17,7 +17,11 @@ type StaffDraft = { name: string; role: StaffRole }
 
 const steps = ['Responsáveis', 'Crianças', 'Equipe', 'Avatares'] as const
 
-export function OnboardingWizard({ defaultParentName }: { defaultParentName: string }) {
+export function OnboardingWizard({
+  defaultParentName,
+}: {
+  defaultParentName: string
+}) {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -42,12 +46,14 @@ export function OnboardingWizard({ defaultParentName }: { defaultParentName: str
       })
       await router.navigate({ to: '/' })
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar')
+      setError(
+        cause instanceof Error ? cause.message : 'Não foi possível salvar',
+      )
     }
   }
 
   const namedKids = kids.filter((child) => child.name.trim())
-  const currentKid = namedKids[avatarIndex] ?? namedKids[0]
+  const currentKid = namedKids.at(avatarIndex) ?? namedKids.at(0)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -72,7 +78,10 @@ export function OnboardingWizard({ defaultParentName }: { defaultParentName: str
           addLabel="Adicionar responsável"
           onChange={setParents}
           onAdd={() =>
-            setParents([...parents, { name: '', role: parents.length ? 'pai' : 'mae' }])
+            setParents([
+              ...parents,
+              { name: '', role: parents.length ? 'pai' : 'mae' },
+            ])
           }
         />
       ) : null}
@@ -115,9 +124,7 @@ export function OnboardingWizard({ defaultParentName }: { defaultParentName: str
             labels={STAFF_ROLE_LABELS}
             addLabel="Adicionar terapeuta ou professora"
             onChange={setStaff}
-            onAdd={() =>
-              setStaff([...staff, { name: '', role: 'terapeuta' }])
-            }
+            onAdd={() => setStaff([...staff, { name: '', role: 'terapeuta' }])}
           />
         </div>
       ) : null}
@@ -188,7 +195,7 @@ export function OnboardingWizard({ defaultParentName }: { defaultParentName: str
   )
 }
 
-function AdultList<Role extends string>({
+function AdultList<TRole extends string>({
   people,
   roles,
   labels,
@@ -196,11 +203,11 @@ function AdultList<Role extends string>({
   onChange,
   onAdd,
 }: {
-  people: Array<{ name: string; role: Role }>
-  roles: Array<Role>
-  labels: Record<Role, string>
+  people: Array<{ name: string; role: TRole }>
+  roles: Array<TRole>
+  labels: Record<TRole, string>
   addLabel: string
-  onChange: (people: Array<{ name: string; role: Role }>) => void
+  onChange: (people: Array<{ name: string; role: TRole }>) => void
   onAdd: () => void
 }) {
   return (
@@ -221,7 +228,7 @@ function AdultList<Role extends string>({
             value={person.role}
             onChange={(event) => {
               const next = [...people]
-              next[index] = { ...person, role: event.target.value as Role }
+              next[index] = { ...person, role: event.target.value as TRole }
               onChange(next)
             }}
             className="rounded-2xl border-2 border-[#2a2118] bg-[#fff8ec] px-4 py-3"
