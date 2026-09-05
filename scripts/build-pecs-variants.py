@@ -41,7 +41,7 @@ SHIRT = {
 }
 
 GENDERS = ("menino", "menina", "outro")
-HAIR_TYPES = ("wavy", "puff")
+HAIR_TYPES = ("short", "wavy", "curly", "long", "puff", "bun")
 
 CHARACTER_CARDS = {
     "xixi": "xixi-pedido.jpg",
@@ -55,6 +55,13 @@ CHARACTER_CARDS = {
     "pronto": "pronto.jpg",
     "descarga": "descarga.jpg",
     "papel": "papel.jpg",
+}
+
+BATHROOM_SLUGS = {
+    "descarga",
+    "sentar",
+    "lavar-maos",
+    "ir-banheiro",
 }
 
 PREVIEWS = (
@@ -190,125 +197,188 @@ def tint_recolor(src: np.ndarray, mask: np.ndarray, target: np.ndarray) -> np.nd
     return out
 
 
+def hsv_channels(rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    hsv = rgb_to_hsv(rgb / 255.0)
+    return hsv[..., 0], hsv[..., 1], hsv[..., 2]
+
+
+def detect_background(s: np.ndarray, v: np.ndarray) -> np.ndarray:
+    cream = (s < 0.22) & (v > 0.82)
+    return border_connected(cream) | cream
+
+
+def region_box(
+    mask: np.ndarray, pad_y: float = 0.06, pad_x: float = 0.08
+) -> np.ndarray:
+    if not mask.any():
+        return np.ones_like(mask, dtype=bool)
+    height, width = mask.shape
+    ys, xs = np.where(mask)
+    box = np.zeros_like(mask, dtype=bool)
+    y0 = max(0, int(ys.min() - height * pad_y))
+    y1 = min(height, int(ys.max() + height * pad_y))
+    x0 = max(0, int(xs.min() - width * pad_x))
+    x1 = min(width, int(xs.max() + width * pad_x))
+    box[y0:y1, x0:x1] = True
+    return box
+
+
+def detect_floor(
+    figure: np.ndarray, h: np.ndarray, s: np.ndarray, v: np.ndarray, slug: str
+) -> np.ndarray:
+    if slug == "papel":
+        return np.zeros_like(figure)
+    height, width = figure.shape
+    y = np.arange(height)[:, None] / height
+    tiles = (
+        figure
+        & (y > 0.58)
+        & (h > 0.07)
+        & (h < 0.18)
+        & (s > 0.20)
+        & (v > 0.35)
+        & (v < 0.90)
+    )
+    seeds = (
+        row_seeds(tiles, int(height * 0.86))
+        + row_seeds(tiles, int(height * 0.90))
+        + row_seeds(tiles, int(height * 0.78))
+        + row_seeds(tiles, int(height * 0.94))
+        + edge_seeds(tiles, "bottom")
+    )
+    candidate = flood(tiles, seeds)
+    cols = np.where(candidate.any(axis=0))[0]
+    span = (int(cols[-1]) - int(cols[0])) / width if len(cols) > 1 else 0.0
+    if span >= 0.28 and candidate.mean() >= 0.015:
+        return candidate
+    shadow = figure & (y > 0.84) & (v < 0.58) & (s < 0.45)
+    return tiles | shadow if slug in BATHROOM_SLUGS else shadow
+
+
+def detect_shorts(
+    figure: np.ndarray, h: np.ndarray, s: np.ndarray, v: np.ndarray
+) -> np.ndarray:
+    shorts = figure & (h > 0.52) & (h < 0.76) & (s > 0.22) & (v > 0.22) & (v < 0.72)
+    return largest_component(shorts) if shorts.any() else shorts
+
+
 def torso_from_shorts(shorts: np.ndarray, figure: np.ndarray) -> np.ndarray:
     if not shorts.any():
-        return np.zeros_like(figure)
+        return figure
     height, width = figure.shape
     ys, xs = np.where(shorts)
     top, bottom = int(ys.min()), int(ys.max())
     left, right = int(xs.min()), int(xs.max())
-    pad_y = int(height * 0.34)
-    pad_x = int(width * 0.14)
+    pad_y = int(height * 0.38)
+    pad_x = int(width * 0.18)
     box = np.zeros_like(figure)
     box[
-        max(0, top - pad_y) : min(height, bottom + int(height * 0.04)),
+        max(0, top - pad_y) : min(height, bottom + int(height * 0.06)),
         max(0, left - pad_x) : min(width, right + pad_x),
     ] = True
     return figure & box
 
 
-def masks(rgb: np.ndarray, slug: str) -> dict[str, np.ndarray]:
-    hsv = rgb_to_hsv(rgb / 255.0)
-    h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
-    height, width = rgb.shape[:2]
+def yellow_core(h: np.ndarray, s: np.ndarray, v: np.ndarray) -> np.ndarray:
+    return (h > 0.085) & (h < 0.17) & (s > 0.40) & (v > 0.45)
+
+
+def yellow_fill(h: np.ndarray, s: np.ndarray, v: np.ndarray) -> np.ndarray:
+    return (h > 0.07) & (h < 0.18) & (s > 0.28) & (v > 0.38)
+
+
+def fill_garment(
+    candidate: np.ndarray,
+    figure: np.ndarray,
+    hue: np.ndarray,
+    shorts: np.ndarray,
+    floor: np.ndarray,
+    radius: int,
+) -> np.ndarray:
+    core = largest_component(candidate)
+    if not core.any():
+        return np.zeros_like(figure)
+    return dilate(core, radius) & figure & hue & ~shorts & ~floor
+
+
+def shirt_band(hair: np.ndarray, shorts: np.ndarray, shape: tuple[int, int]) -> np.ndarray:
+    height = shape[0]
     y = np.arange(height)[:, None] / height
-    x = np.arange(width)[None, :] / width
-
-    cream = (s < 0.22) & (v > 0.82)
-    bg = border_connected(cream) | cream
-    figure = ~bg
-
-    sage_wall = figure & (h > 0.22) & (h < 0.48) & (s > 0.12) & (v > 0.35) & (v < 0.82)
-    shorts = figure & (h > 0.52) & (h < 0.76) & (s > 0.22) & (v > 0.22) & (v < 0.72)
-    shorts = largest_component(shorts) if shorts.any() else shorts
-
-    yellow = (h > 0.085) & (h < 0.17) & (s > 0.40) & (v > 0.45)
-    yellow_fill = (h > 0.08) & (h < 0.175) & (s > 0.36) & (v > 0.42)
-
-    floor = np.zeros_like(figure)
-    if slug != "papel":
-        tiles = (
-            figure
-            & (y > 0.62)
-            & (h > 0.09)
-            & (h < 0.17)
-            & (s > 0.28)
-            & (v > 0.42)
-            & (v < 0.86)
-        )
-        floor_seeds = (
-            row_seeds(tiles, int(height * 0.86))
-            + row_seeds(tiles, int(height * 0.90))
-            + row_seeds(tiles, int(height * 0.78))
-        )
-        candidate = flood(tiles, floor_seeds)
-        cols = np.where(candidate.any(axis=0))[0]
-        span = (int(cols[-1]) - int(cols[0])) / width if len(cols) > 1 else 0.0
-        if span >= 0.35 and candidate.mean() >= 0.02:
-            floor = candidate
-
-    if slug == "papel":
-        peach = (
-            figure
-            & (x > 0.50)
-            & (h < 0.14)
-            & (s > 0.12)
-            & (v > 0.28)
-            & (v < 0.95)
-        )
-        paper = (s < 0.16) & (v > 0.78)
-        hand = largest_component(peach & ~paper)
-        skin = dilate(hand, 3) & figure & (x > 0.48) & ~paper & (h < 0.15)
-        empty = np.zeros_like(figure)
-        return {"skin": skin, "hair": empty, "shirt": empty, "eyes": empty, "bg": bg}
-
-    torso = torso_from_shorts(shorts, figure) & ~floor
-    yellow_core = torso & yellow & ~floor
-    if int(yellow_core.sum()) > 800:
-        shirt = dilate(yellow_core, 5) & figure & yellow_fill & ~shorts & ~floor
-    else:
-        shirt = np.zeros_like(figure)
-
-    if not shirt.any():
-        coral = torso & (h < 0.085) & (s > 0.40) & (v > 0.38) & (v < 0.90) & ~shorts
-        coral_area = (
-            figure
-            & (h < 0.11)
-            & (s > 0.30)
-            & (v > 0.35)
-            & (v < 0.92)
-            & ~shorts
-            & ~floor
-        )
-        ys, xs = np.where(coral)
-        seeds = [(int(xs[i]), int(ys[i])) for i in range(0, len(xs), 24)]
-        garment = flood(coral_area, seeds) if seeds else np.zeros_like(figure)
-        garment = dilate(garment, 4) & coral_area
-    else:
-        garment = shirt
-
-    socks = figure & (s < 0.26) & (v > 0.70) & (y > 0.52)
     if shorts.any():
-        socks = socks & dilate(shorts, 22)
-    shoes = (
-        figure
-        & ~socks
-        & ~shirt
-        & (h < 0.085)
-        & (s > 0.30)
-        & (v > 0.28)
-        & (v < 0.82)
-        & dilate(socks, 16)
-    )
+        top_of_shorts = int(np.where(shorts.any(axis=1))[0].min()) / height
+        top = max(0.22, top_of_shorts - 0.30)
+        bottom = top_of_shorts + 0.05
+        return (y > top) & (y < bottom)
+    if hair.any():
+        rows = np.where(hair.any(axis=1))[0]
+        top = min(0.42, max(0.28, float(np.percentile(rows, 55)) / height))
+        return (y > top) & (y < 0.72)
+    return (y > 0.32) & (y < 0.70)
 
-    adult = flood(
-        figure & (h < 0.12) & (s > 0.16) & (v > 0.30) & (v < 0.92) & (y < 0.38),
-        edge_seeds(figure & (h < 0.12) & (s > 0.16) & (v > 0.30), "top"),
-    )
-    adult = adult & ~shirt & ~shorts
 
-    clothes = shorts | socks | shoes | garment | shirt
-    dark_hair = (
+def detect_shirt(
+    figure: np.ndarray,
+    h: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    shorts: np.ndarray,
+    floor: np.ndarray,
+    hair: np.ndarray,
+    slug: str,
+) -> np.ndarray:
+    band = shirt_band(hair, shorts, figure.shape)
+    torso = (torso_from_shorts(shorts, figure) if shorts.any() else figure) & ~floor & band
+    yellow_c = torso & yellow_core(h, s, v) & ~shorts
+    if int(yellow_c.sum()) <= 500:
+        return np.zeros_like(figure)
+    shirt = fill_garment(yellow_c, figure, yellow_fill(h, s, v), shorts, floor, 5)
+    shirt = shirt | (
+        dilate(shirt, 3) & figure & yellow_fill(h, s, v) & band & ~shorts & ~floor
+    )
+    return shirt & band & ~dilate(hair, 6)
+
+
+def detect_socks_shoes(
+    figure: np.ndarray,
+    h: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    y: np.ndarray,
+    shorts: np.ndarray,
+    shirt: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    shoes = figure & (y > 0.68) & (h < 0.08) & (s > 0.28) & (v > 0.28) & (v < 0.85) & ~shirt
+    socks = figure & (y > 0.62) & (s < 0.22) & (v > 0.75) & ~shoes
+    if shorts.any():
+        socks = socks & ~dilate(shorts, 8)
+    return socks, shoes
+
+
+def detect_adult(
+    figure: np.ndarray,
+    h: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    y: np.ndarray,
+    shirt: np.ndarray,
+    shorts: np.ndarray,
+) -> np.ndarray:
+    band = figure & (h < 0.12) & (s > 0.16) & (v > 0.30) & (v < 0.92) & (y < 0.38)
+    adult = flood(band, edge_seeds(figure & (h < 0.12) & (s > 0.16) & (v > 0.30), "top"))
+    return adult & ~shirt & ~shorts
+
+
+def detect_hair(
+    figure: np.ndarray,
+    h: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    y: np.ndarray,
+    clothes: np.ndarray,
+    adult: np.ndarray,
+    floor: np.ndarray,
+) -> np.ndarray:
+    dark = (
         figure
         & ~clothes
         & ~adult
@@ -318,7 +388,7 @@ def masks(rgb: np.ndarray, slug: str) -> dict[str, np.ndarray]:
         & ((h < 0.14) | (h > 0.90))
         & (y < 0.64)
     )
-    hair_edge = (
+    edge = (
         figure
         & ~clothes
         & ~adult
@@ -328,33 +398,104 @@ def masks(rgb: np.ndarray, slug: str) -> dict[str, np.ndarray]:
         & ((h < 0.14) | (h > 0.90))
         & (y < 0.68)
     )
-    hair = dark_hair | (dilate(dark_hair, 3) & hair_edge)
+    return dark | (dilate(dark, 3) & edge)
 
-    near_hair = dilate(hair, 10)
-    sclera = figure & near_hair & (v > 0.78) & (s < 0.32)
-    eyes = dilate(sclera, 2) & figure & near_hair & ~shirt
 
-    child = dilate(shorts | shirt | hair | socks, 26)
-    skin = (
-        figure
-        & child
-        & ~hair
-        & ~eyes
-        & ~clothes
-        & ~adult
-        & ~floor
-        & ~sage_wall
-        & ~cream
-        & (h < 0.12)
-        & (s > 0.24)
-        & (s < 0.72)
-        & (v > 0.30)
-        & (v < 0.90)
+def detect_eyes(
+    figure: np.ndarray,
+    hair: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    shirt: np.ndarray,
+) -> np.ndarray:
+    near_hair = dilate(hair, 6)
+    sclera = figure & near_hair & (v > 0.86) & (s < 0.18)
+    return dilate(sclera, 1) & figure & near_hair & ~shirt
+
+
+def detect_skin(
+    figure: np.ndarray,
+    h: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    hair: np.ndarray,
+    eyes: np.ndarray,
+    clothes: np.ndarray,
+    adult: np.ndarray,
+    floor: np.ndarray,
+    sage: np.ndarray,
+    shirt: np.ndarray,
+    shorts: np.ndarray,
+    socks: np.ndarray,
+    slug: str,
+) -> np.ndarray:
+    body = hair | shirt | shorts | socks
+    child = region_box(body, 0.05, 0.07) | dilate(body, 18)
+    if slug in BATHROOM_SLUGS and shorts.any():
+        width = figure.shape[1]
+        xs = np.where(shorts.any(axis=0))[0]
+        center = int(xs.mean())
+        near = np.abs(np.arange(width) - center)[None, :] < int(width * 0.30)
+        child = child & near & dilate(body, 16)
+    hue = ((h < 0.14) | (h > 0.90)) & (s > 0.08) & (s < 0.85) & (v > 0.22) & (v < 0.96)
+    keep = figure & child & ~hair & ~eyes & ~clothes & ~adult & ~floor & ~sage
+    skin = keep & hue
+    return dilate(skin, 8) & keep
+
+
+def papel_masks(
+    figure: np.ndarray,
+    h: np.ndarray,
+    s: np.ndarray,
+    v: np.ndarray,
+    x: np.ndarray,
+    bg: np.ndarray,
+) -> dict[str, np.ndarray]:
+    peach = figure & (x > 0.50) & (h < 0.14) & (s > 0.12) & (v > 0.28) & (v < 0.95)
+    paper = (s < 0.16) & (v > 0.78)
+    hand = largest_component(peach & ~paper)
+    skin = dilate(hand, 4) & figure & (x > 0.48) & ~paper
+    skin = dilate(erode(dilate(skin, 5), 3), 2) & figure & (x > 0.48) & ~paper
+    empty = np.zeros_like(figure)
+    return {"skin": skin, "hair": empty, "shirt": empty, "eyes": empty, "bg": bg}
+
+
+def masks(rgb: np.ndarray, slug: str) -> dict[str, np.ndarray]:
+    h, s, v = hsv_channels(rgb)
+    height, width = rgb.shape[:2]
+    y = np.arange(height)[:, None] / height
+    x = np.arange(width)[None, :] / width
+    bg = detect_background(s, v)
+    figure = ~bg
+    if slug == "papel":
+        return papel_masks(figure, h, s, v, x, bg)
+    sage = figure & (h > 0.22) & (h < 0.48) & (s > 0.12) & (v > 0.35) & (v < 0.82)
+    floor = detect_floor(figure, h, s, v, slug)
+    shorts = detect_shorts(figure, h, s, v)
+    empty = np.zeros_like(figure)
+    hair_guess = detect_hair(figure, h, s, v, y, shorts, empty, floor)
+    shirt = detect_shirt(figure, h, s, v, shorts, floor, hair_guess, slug)
+    socks, shoes = detect_socks_shoes(figure, h, s, v, y, shorts, shirt)
+    adult = detect_adult(figure, h, s, v, y, shirt, shorts)
+    clothes = shorts | socks | shoes | shirt
+    hair = detect_hair(figure, h, s, v, y, clothes, adult, floor)
+    eyes = detect_eyes(figure, hair, s, v, shirt)
+    skin = detect_skin(
+        figure,
+        h,
+        s,
+        v,
+        hair,
+        eyes,
+        clothes,
+        adult,
+        floor,
+        sage,
+        shirt,
+        shorts,
+        socks,
+        slug,
     )
-    if shorts.any():
-        lower = shorts | socks | shoes
-        gap = erode(dilate(lower, 14), 10) & ~lower & figure & (s < 0.32) & (v > 0.62)
-        skin = skin & ~gap
     return {"skin": skin, "hair": hair, "shirt": shirt, "eyes": eyes, "bg": bg}
 
 
@@ -378,11 +519,14 @@ def apply_variant(
 
 def source_for(slug: str, gender: str, hair_type: str = "wavy") -> Path:
     source_gender = "menino" if gender == "outro" else gender
+    named = BASES / f"{source_gender}-{hair_type}-{slug}.jpg"
+    if named.exists():
+        return named
     if hair_type == "puff":
         puff = BASES / f"{source_gender}-puff-{slug}.jpg"
         if puff.exists():
             return puff
-    if source_gender == "menina":
+    if hair_type == "wavy" and source_gender == "menina":
         girl = BASES / f"menina-{slug}.jpg"
         if girl.exists():
             return girl
