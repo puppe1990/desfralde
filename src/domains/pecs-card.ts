@@ -1,4 +1,4 @@
-import type { ChildAvatar, HairType } from './child-avatar'
+import type { ChildAvatar } from './child-avatar'
 
 export type CardKind = 'pedido' | 'rotina'
 export type CardTone = 'terra' | 'sage' | 'honey'
@@ -29,16 +29,11 @@ export const PECS_CHARACTER_SLUGS = [
 
 const CHARACTER_SLUGS = new Set<string>(PECS_CHARACTER_SLUGS)
 
-export function pecsHairSilhouette(hairType: HairType): 'puff' | 'wavy' {
-  return hairType === 'puff' ? 'puff' : 'wavy'
-}
-
 export function pecsCardImageSrc(
   slug: string,
   fallbackSrc: string,
   avatar?: ChildAvatar,
 ): string {
   if (!avatar || !CHARACTER_SLUGS.has(slug)) return fallbackSrc
-  const hair = pecsHairSilhouette(avatar.hairType)
-  return `/pecs/tinted/${slug}/${avatar.gender}-${avatar.skinTone}-${hair}-${avatar.hairColor}.jpg`
+  return `/pecs/tinted/${slug}/${avatar.gender}-${avatar.skinTone}-${avatar.hairType}-${avatar.hairColor}.jpg`
 }
